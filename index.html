@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Post Manager">
+<title>Post Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0e13;--bg2:#111820;--bg3:#1a2330;
+  --accent:#00e5ff;--green:#00e676;--red:#ff5252;
+  --yellow:#ffd740;--pink:#ff4081;--orange:#ff9100;
+  --text:#e0eaf0;--muted:#4a6070;--border:#1e2d3d;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.header-title{font-size:16px;font-weight:700;letter-spacing:.5px}
+.header-sub{font-size:11px;color:var(--muted);margin-top:1px}
+
+/* STATS BAR */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--bg2);border-bottom:1px solid var(--border)}
+.stat-item{padding:10px;text-align:center;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-size:20px;font-weight:700;font-family:monospace}
+.stat-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{flex:1;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:70px}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PAGES */
+.page{display:none;padding:12px}
+.page.active{display:block}
+
+/* CARDS */
+.account-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.account-card.completed{border-color:var(--green);opacity:.7}
+.card-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.card-name{font-size:14px;font-weight:700}
+.card-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.card-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
+.badge-green{background:#00e67620;color:var(--green)}
+.badge-yellow{background:#ffd74020;color:var(--yellow)}
+.badge-red{background:#ff525220;color:var(--red)}
+
+.progress-bar{height:3px;background:var(--bg3);margin:0 14px}
+.progress-fill{height:100%;border-radius:2px;transition:width .4s}
+
+.card-body{padding:10px 14px 12px}
+.today-info{background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px;text-align:center}
+.today-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.today-range{font-size:20px;font-weight:700;color:var(--accent);font-family:monospace}
+.today-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+.platform-btns{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.plt-btn{flex:1;padding:7px 4px;border-radius:8px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;min-width:60px}
+.plt-btn.ig{border-color:#e1306c40;color:#e1306c;background:#e1306c10}
+.plt-btn.sc{border-color:#fffc0040;color:#fffc00;background:#fffc0010}
+.plt-btn.fb{border-color:#1877f240;color:#1877f2;background:#1877f210}
+.plt-btn.posted{opacity:.5;text-decoration:line-through}
+.plt-btn.all-posted{border-color:var(--green)40;color:var(--green);background:var(--green)10}
+
+.action-row{display:flex;gap:8px}
+.btn{padding:9px 12px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;flex:1;text-align:center;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#000}
+.btn-success{background:var(--green);color:#000}
+.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--red)20;color:var(--red);border:1px solid var(--red)40}
+.btn-sm{padding:7px 10px;font-size:11px;flex:none}
+
+/* HISTORY */
+.history-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.history-acc{font-size:13px;font-weight:700;color:var(--accent)}
+.history-range{font-size:12px;color:var(--muted);margin-top:2px;font-family:monospace}
+.history-date{font-size:11px;color:var(--muted);margin-top:4px}
+.history-plts{display:flex;gap:4px;margin-top:6px}
+.history-plt{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:420px;border-top:1px solid var(--border);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+
+.field{margin-bottom:14px}
+.field-label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+
+.checkrow{display:flex;gap:10px;flex-wrap:wrap}
+.chk-label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;flex:1;justify-content:center}
+.chk-label input{accent-color:var(--accent);width:16px;height:16px}
+
+/* SETUP */
+.setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:12px}
+.setup-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.setup-sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:40px;margin-bottom:10px}
+
+/* TOPIC LIST */
+.topic-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;cursor:pointer}
+.topic-name{font-size:13px;font-weight:600}
+.topic-id{font-size:11px;color:var(--muted);font-family:monospace}
+
+/* LOADING */
+.loading{text-align:center;padding:30px;color:var(--muted)}
+.spin{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.bnav-item{flex:1;padding:10px 4px;text-align:center;cursor:pointer;color:var(--muted);font-size:10px;letter-spacing:.5px;transition:color .2s}
+.bnav-item.active{color:var(--accent)}
+.bnav-icon{font-size:20px;margin-bottom:2px}
+
+.content{padding-bottom:80px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">📱 Post Manager</div>
+    <div class="header-sub" id="hdr-sub">American Studio × TikTok Studio</div>
+  </div>
+  <button class="btn btn-ghost btn-sm" onclick="showAddModal()">+ Shto</button>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num" id="s-accounts" style="color:var(--accent)">0</div>
+    <div class="stat-lbl">Accounts</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" id="s-today" style="color:var(--green)">0</div>
+    <div class="stat-lbl">Sot</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" id="s-total" style="color:var(--yellow)">0</div>
+    <div class="stat-lbl">Total</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('queue',this)">🎬 Queue</div>
+  <div class="tab" onclick="showTab('history',this)">📋 Historia</div>
+  <div class="tab" onclick="showTab('telegram',this)">✈️ Telegram</div>
+  <div class="tab" onclick="showTab('settings',this)">⚙️ Settings</div>
+</div>
+
+<div class="content">
+
+<!-- QUEUE TAB -->
+<div class="page active" id="tab-queue">
+  <div id="queue-list"></div>
+</div>
+
+<!-- HISTORY TAB -->
+<div class="page" id="tab-history">
+  <div id="history-list"></div>
+</div>
+
+<!-- TELEGRAM TAB -->
+<div class="page" id="tab-telegram">
+  <div style="margin-bottom:12px">
+    <button class="btn btn-primary" onclick="loadTopics()" style="width:100%">
+      🔄 Ngarko Topics nga Telegram
+    </button>
+  </div>
+  <div id="topics-list">
+    <div class="empty">
+      <div class="empty-icon">✈️</div>
+      Shtyp butonin për të ngarkuar topics
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div class="page" id="tab-settings">
+  <div class="setup-card">
+    <div class="setup-title">🤖 Telegram Bot</div>
+    <div class="setup-sub">Vendos të dhënat e bot-it</div>
+    <div class="field">
+      <div class="field-label">Bot Token</div>
+      <input id="cfg-token" type="password" placeholder="8738753901:AAGJ..." value="">
+    </div>
+    <div class="field">
+      <div class="field-label">Group Chat ID</div>
+      <input id="cfg-group" placeholder="-1003950290594" value="">
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()" style="width:100%">
+      💾 Ruaj Settings
+    </button>
+  </div>
+
+  <div class="setup-card">
+    <div class="setup-title">📊 Statistika</div>
+    <div class="setup-sub">Overview i plotë</div>
+    <div id="full-stats"></div>
+  </div>
+
+  <div class="setup-card" style="border-color:var(--red)40">
+    <div class="setup-title" style="color:var(--red)">⚠️ Reset</div>
+    <div class="setup-sub">Fshi të gjitha të dhënat</div>
+    <button class="btn btn-danger" onclick="resetAll()" style="width:100%">
+      Fshi gjithçka
+    </button>
+  </div>
+</div>
+
+</div>
+
+<!-- ADD ACCOUNT MODAL -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ Shto Account</div>
+    <div class="field">
+      <div class="field-label">Emri / Username</div>
+      <input id="inp-name" placeholder="@candygirlsamira">
+    </div>
+    <div class="field">
+      <div class="field-label">Lloji</div>
+      <select id="inp-type">
+        <option value="tiktok">🎵 TikTok Studio</option>
+        <option value="studio">🤖 American Studio PRO</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-label">Total video në Telegram</div>
+      <input id="inp-total" type="number" placeholder="703">
+    </div>
+    <div class="field">
+      <div class="field-label">Duke filluar nga video nr.</div>
+      <input id="inp-start" type="number" placeholder="0 = fillon nga e para" value="0">
+    </div>
+    <div class="field">
+      <div class="field-label">Platformat</div>
+      <div class="checkrow">
+        <label class="chk-label"><input type="checkbox" id="chk-ig" checked>📸 IG</label>
+        <label class="chk-label"><input type="checkbox" id="chk-sc">👻 SC</label>
+        <label class="chk-label"><input type="checkbox" id="chk-fb">📘 FB</label>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add')" style="flex:1">Anulo</button>
+      <button class="btn btn-primary" onclick="saveAccount()" style="flex:1">Shto ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- POST TODAY MODAL -->
+<div class="modal-overlay" id="modal-post">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mp-title">Posto Sot</div>
+
+    <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Shkarko nga Telegram këto video:</div>
+      <div style="font-size:32px;font-weight:700;color:var(--accent);font-family:monospace" id="mp-range"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="mp-sub"></div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Sa video sot?</div>
+      <input id="mp-count" type="number" min="1" max="50" value="3" oninput="updatePostPreview()">
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div class="field-label" style="margin-bottom:8px">Postuar në:</div>
+      <div class="checkrow" id="mp-platforms"></div>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-post')" style="flex:1">Anulo</button>
+      <button class="btn btn-success" onclick="confirmPost()" style="flex:1">✅ Konfirmo</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════
+// DATA
+// ═══════════════════════════════
+let accounts = JSON.parse(localStorage.getItem('pm_accounts') || '[]');
+let history  = JSON.parse(localStorage.getItem('pm_history')  || '[]');
+let cfg      = JSON.parse(localStorage.getItem('pm_cfg')      || '{}');
+let activeIdx = -1;
+
+const PLT_INFO = {
+  ig: {label:'Instagram', color:'#e1306c', bg:'#e1306c18'},
+  sc: {label:'Snapchat',  color:'#fffc00', bg:'#fffc0018'},
+  fb: {label:'Facebook',  color:'#1877f2', bg:'#1877f218'},
+};
+
+function saveData(){
+  localStorage.setItem('pm_accounts', JSON.stringify(accounts));
+  localStorage.setItem('pm_history',  JSON.stringify(history));
+}
+
+function todayStr(){
+  return new Date().toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+// ═══════════════════════════════
+// TOAST
+// ═══════════════════════════════
+let toastTimer;
+function toast(msg, ms=2500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), ms);
+}
+
+// ═══════════════════════════════
+// TABS
+// ═══════════════════════════════
+function showTab(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='queue') renderQueue();
+  if(name==='history') renderHistory();
+  if(name==='settings') renderSettings();
+}
+
+// ═══════════════════════════════
+// STATS
+// ═══════════════════════════════
+function updateStats(){
+  const today = todayStr();
+  const todayH = history.filter(h=>h.date===today);
+  const todayCount = todayH.reduce((s,h)=>s+h.count, 0);
+  const totalPosted = accounts.reduce((s,a)=>s+a.current, 0);
+
+  document.getElementById('s-accounts').textContent = accounts.length;
+  document.getElementById('s-today').textContent = todayCount;
+  document.getElementById('s-total').textContent = totalPosted;
+}
+
+// ═══════════════════════════════
+// QUEUE
+// ═══════════════════════════════
+function renderQueue(){
+  const el = document.getElementById('queue-list');
+  updateStats();
+
+  if(!accounts.length){
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>Nuk ka accounts ende.<br>Shtyp "+ Shto" për të filluar.</div>`;
+    return;
+  }
+
+  const today = todayStr();
+
+  el.innerHTML = accounts.map((a,i)=>{
+    const pct = Math.round((a.current/a.total)*100);
+    const remaining = a.total - a.current;
+    const todayH = history.filter(h=>h.date===today && h.acc===a.name);
+    const todayCount = todayH.reduce((s,h)=>s+h.count,0);
+    const done = remaining === 0;
+    const nextFrom = a.current + 1;
+    const nextTo   = Math.min(a.current + 3, a.total);
+
+    const typeIcon = a.type === 'studio' ? '🤖' : '🎵';
+    const typeLbl  = a.type === 'studio' ? 'Studio PRO' : 'TikTok';
+
+    let badgeHtml = '';
+    if(done) badgeHtml = `<span class="card-badge badge-green">✓ Komplet</span>`;
+    else if(pct >= 80) badgeHtml = `<span class="card-badge badge-yellow">80%+</span>`;
+    else if(todayCount > 0) badgeHtml = `<span class="card-badge badge-green">+${todayCount} sot</span>`;
+
+    const pltColors = {ig:'#e1306c',sc:'#fffc00',fb:'#1877f2'};
+    const pltsHtml = a.platforms.map(p=>
+      `<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:${pltColors[p]}20;color:${pltColors[p]};font-weight:700;">${PLT_INFO[p].label}</span>`
+    ).join('');
+
+    return `
+    <div class="account-card ${done?'completed':''}">
+      <div class="card-header">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:14px">${typeIcon}</span>
+            <div class="card-name">${a.name}</div>
+          </div>
+          <div class="card-meta">${typeLbl} · ${a.current}/${a.total} · ${remaining} mbetur</div>
+        </div>
+        ${badgeHtml}
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${pct}%;background:${done?'var(--green)':'var(--accent)'}"></div>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">${pltsHtml}</div>
+        ${!done ? `
+        <div class="today-info">
+          <div class="today-label">Radhja tjetër</div>
+          <div class="today-range">#${nextFrom} — #${nextTo}</div>
+          <div class="today-sub">Shkarko nga Telegram</div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="showPostModal(${i})">📲 Posto Sot</button>
+          <button class="btn btn-ghost btn-sm" onclick="editAccount(${i})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAccount(${i})">🗑️</button>
+        </div>` : `
+        <div style="text-align:center;color:var(--green);font-size:13px;padding:6px">
+          ✅ Të gjitha videot u postuan!
+        </div>
+        <div class="action-row">
+          <button class="btn btn-ghost btn-sm" onclick="resetAccount(${i})">🔄 Reset</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAccount(${i})">🗑️ Fshi</button>
+        </div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════
+// HISTORY
+// ═══════════════════════════════
+function renderHistory(){
+  const el = document.getElementById('history-list');
+  if(!history.length){
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>Nuk ka histori ende.</div>`;
+    return;
+  }
+  const sorted = [...history].reverse();
+  el.innerHTML = sorted.map(h=>{
+    const pltsHtml = (h.platforms||[]).map(p=>
+      `<span class="history-plt" style="background:${PLT_INFO[p].bg};color:${PLT_INFO[p].color}">${PLT_INFO[p].label}</span>`
+    ).join('');
+    return `
+    <div class="history-item">
+      <div class="history-acc">${h.acc}</div>
+      <div class="history-range">Video #${h.from} — #${h.to} (${h.count} video)</div>
+      <div class="history-date">📅 ${h.date}</div>
+      <div class="history-plts">${pltsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════
+// SETTINGS
+// ═══════════════════════════════
+function renderSettings(){
+  const c = JSON.parse(localStorage.getItem('pm_cfg')||'{}');
+  document.getElementById('cfg-token').value = c.token || '';
+  document.getElementById('cfg-group').value = c.group || '';
+
+  const el = document.getElementById('full-stats');
+  if(!accounts.length){el.innerHTML='<div style="color:var(--muted);font-size:13px">Nuk ka accounts</div>';return;}
+  el.innerHTML = accounts.map(a=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:13px">${a.name}</div>
+      <div style="font-size:12px;color:var(--muted);font-family:monospace">${a.current}/${a.total}</div>
+    </div>`).join('');
+}
+
+function saveSettings(){
+  const token = document.getElementById('cfg-token').value.trim();
+  const group = document.getElementById('cfg-group').value.trim();
+  cfg = {token, group};
+  localStorage.setItem('pm_cfg', JSON.stringify(cfg));
+  toast('✅ Settings u ruajtën!');
+}
+
+// ═══════════════════════════════
+// MODALS
+// ═══════════════════════════════
+function showAddModal(){
+  document.getElementById('inp-name').value='';
+  document.getElementById('inp-total').value='';
+  document.getElementById('inp-start').value='0';
+  document.getElementById('chk-ig').checked=true;
+  document.getElementById('chk-sc').checked=false;
+  document.getElementById('chk-fb').checked=false;
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+function saveAccount(){
+  const name = document.getElementById('inp-name').value.trim();
+  const type = document.getElementById('inp-type').value;
+  const total = parseInt(document.getElementById('inp-total').value)||0;
+  const start = parseInt(document.getElementById('inp-start').value)||0;
+  const plts = [];
+  if(document.getElementById('chk-ig').checked) plts.push('ig');
+  if(document.getElementById('chk-sc').checked) plts.push('sc');
+  if(document.getElementById('chk-fb').checked) plts.push('fb');
+
+  if(!name||!total||!plts.length){toast('⚠️ Plotëso të gjitha fushat!');return;}
+
+  accounts.push({name,type,total,current:start,platforms:plts,createdAt:new Date().toISOString()});
+  saveData();
+  closeModal('modal-add');
+  renderQueue();
+  toast('✅ Account u shtua!');
+}
+
+// ═══════════════════════════════
+// POST MODAL
+// ═══════════════════════════════
+function showPostModal(idx){
+  activeIdx = idx;
+  const a = accounts[idx];
+  document.getElementById('mp-title').textContent = `📲 ${a.name}`;
+  document.getElementById('mp-count').value = Math.min(3, a.total-a.current);
+
+  const pltEl = document.getElementById('mp-platforms');
+  pltEl.innerHTML = a.platforms.map(p=>`
+    <label class="chk-label" style="border-color:${PLT_INFO[p].color}40">
+      <input type="checkbox" class="mp-plt" value="${p}" checked>
+      ${PLT_INFO[p].label}
+    </label>`).join('');
+
+  updatePostPreview();
+  document.getElementById('modal-post').classList.add('open');
+}
+
+function updatePostPreview(){
+  if(activeIdx<0) return;
+  const a = accounts[activeIdx];
+  const count = Math.min(parseInt(document.getElementById('mp-count').value)||1, a.total-a.current);
+  const from = a.current+1;
+  const to = Math.min(a.current+count, a.total);
+  document.getElementById('mp-range').textContent = from===to ? `#${from}` : `#${from} — #${to}`;
+  document.getElementById('mp-sub').textContent = `${count} video · mbeten ${a.total-to}`;
+}
+
+function confirmPost(){
+  const a = accounts[activeIdx];
+  const count = Math.min(parseInt(document.getElementById('mp-count').value)||1, a.total-a.current);
+  const from = a.current+1;
+  const to = Math.min(a.current+count, a.total);
+  const plts = [...document.querySelectorAll('.mp-plt:checked')].map(c=>c.value);
+
+  if(!plts.length){toast('⚠️ Zgjedh platformën!');return;}
+
+  a.current = to;
+  history.push({acc:a.name, date:todayStr(), count, from, to, platforms:plts});
+  saveData();
+  closeModal('modal-post');
+  renderQueue();
+  toast(`✅ ${count} video u shënuan si postuar!`);
+}
+
+// ═══════════════════════════════
+// ACCOUNT ACTIONS
+// ═══════════════════════════════
+function editAccount(idx){
+  const a = accounts[idx];
+  const newTotal = prompt(`Total video për ${a.name}:`, a.total);
+  if(newTotal && !isNaN(newTotal)){
+    a.total = parseInt(newTotal);
+    saveData();
+    renderQueue();
+    toast('✅ U përditësua!');
+  }
+}
+
+function deleteAccount(idx){
+  if(confirm(`Fshi ${accounts[idx].name}?`)){
+    accounts.splice(idx,1);
+    saveData();
+    renderQueue();
+    toast('🗑️ Account u fshi!');
+  }
+}
+
+function resetAccount(idx){
+  if(confirm(`Reset progresin për ${accounts[idx].name}?`)){
+    accounts[idx].current=0;
+    saveData();
+    renderQueue();
+    toast('🔄 Progress u reset!');
+  }
+}
+
+function resetAll(){
+  if(confirm('Fshi TË GJITHA të dhënat?')){
+    accounts=[];history=[];
+    saveData();
+    renderQueue();
+    toast('🗑️ Gjithçka u fshi!');
+  }
+}
+
+// ═══════════════════════════════
+// TELEGRAM TOPICS
+// ═══════════════════════════════
+async function loadTopics(){
+  const c = JSON.parse(localStorage.getItem('pm_cfg')||'{}');
+  if(!c.token||!c.group){
+    toast('⚠️ Vendos Bot Token dhe Group ID në Settings!');
+    return;
+  }
+
+  const el = document.getElementById('topics-list');
+  el.innerHTML = `<div class="loading"><div class="spin"></div><br>Duke ngarkuar topics...</div>`;
+
+  try{
+    const url = `https://api.telegram.org/bot${c.token}/getForumTopics?chat_id=${c.group}&limit=100`;
+    const r = await fetch(url);
+    const data = await r.json();
+
+    if(!data.ok){
+      el.innerHTML = `<div class="empty"><div class="empty-icon">❌</div>${data.description||'Gabim API'}</div>`;
+      return;
+    }
+
+    const topics = data.result?.topics || [];
+    if(!topics.length){
+      el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>Nuk ka topics</div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">${topics.length} topics u gjetën</div>
+      ${topics.map(t=>`
+      <div class="topic-item" onclick="addFromTopic('${t.name}', ${t.message_thread_id})">
+        <div>
+          <div class="topic-name">${t.name}</div>
+          <div class="topic-id">thread_id: ${t.message_thread_id}</div>
+        </div>
+        <span style="color:var(--accent);font-size:18px">+</span>
+      </div>`).join('')}`;
+
+  }catch(e){
+    el.innerHTML = `<div class="empty"><div class="empty-icon">❌</div>${e.message}</div>`;
+  }
+}
+
+function addFromTopic(name, threadId){
+  document.getElementById('inp-name').value = name;
+  document.getElementById('inp-type').value = 'tiktok';
+  showAddModal();
+  toast(`Topic "${name}" u zgjodhë!`);
+  showTab('queue', document.querySelector('.tab'));
+}
+
+// ═══════════════════════════════
+// INIT
+// ═══════════════════════════════
+const days = ['E diel','E hënë','E martë','E mërkurë','E enjte','E premte','E shtunë'];
+const d = new Date();
+document.getElementById('hdr-sub').textContent =
+  `${days[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+
+renderQueue();
+</script>
+</body>
+</html>
