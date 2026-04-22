@@ -5,681 +5,468 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Post Manager">
 <title>Post Manager</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#0a0e13;--bg2:#111820;--bg3:#1a2330;
-  --accent:#00e5ff;--green:#00e676;--red:#ff5252;
-  --yellow:#ffd740;--pink:#ff4081;--orange:#ff9100;
-  --text:#e0eaf0;--muted:#4a6070;--border:#1e2d3d;
-}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden}
-
-/* HEADER */
-.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.header-title{font-size:16px;font-weight:700;letter-spacing:.5px}
-.header-sub{font-size:11px;color:var(--muted);margin-top:1px}
-
-/* STATS BAR */
-.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--bg2);border-bottom:1px solid var(--border)}
-.stat-item{padding:10px;text-align:center;border-right:1px solid var(--border)}
-.stat-item:last-child{border-right:none}
-.stat-num{font-size:20px;font-weight:700;font-family:monospace}
-.stat-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
-
-/* TABS */
-.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto}
-.tab{flex:1;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:70px}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-
-/* PAGES */
-.page{display:none;padding:12px}
-.page.active{display:block}
-
-/* CARDS */
-.account-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
-.account-card.completed{border-color:var(--green);opacity:.7}
-.card-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
-.card-name{font-size:14px;font-weight:700}
-.card-meta{font-size:11px;color:var(--muted);margin-top:2px}
-.card-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
-.badge-green{background:#00e67620;color:var(--green)}
-.badge-yellow{background:#ffd74020;color:var(--yellow)}
-.badge-red{background:#ff525220;color:var(--red)}
-
-.progress-bar{height:3px;background:var(--bg3);margin:0 14px}
-.progress-fill{height:100%;border-radius:2px;transition:width .4s}
-
-.card-body{padding:10px 14px 12px}
-.today-info{background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px;text-align:center}
-.today-label{font-size:11px;color:var(--muted);margin-bottom:4px}
-.today-range{font-size:20px;font-weight:700;color:var(--accent);font-family:monospace}
-.today-sub{font-size:11px;color:var(--muted);margin-top:2px}
-
-.platform-btns{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.plt-btn{flex:1;padding:7px 4px;border-radius:8px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;min-width:60px}
-.plt-btn.ig{border-color:#e1306c40;color:#e1306c;background:#e1306c10}
-.plt-btn.sc{border-color:#fffc0040;color:#fffc00;background:#fffc0010}
-.plt-btn.fb{border-color:#1877f240;color:#1877f2;background:#1877f210}
-.plt-btn.posted{opacity:.5;text-decoration:line-through}
-.plt-btn.all-posted{border-color:var(--green)40;color:var(--green);background:var(--green)10}
-
-.action-row{display:flex;gap:8px}
-.btn{padding:9px 12px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;flex:1;text-align:center;transition:all .15s}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:var(--accent);color:#000}
-.btn-success{background:var(--green);color:#000}
-.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
-.btn-danger{background:var(--red)20;color:var(--red);border:1px solid var(--red)40}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0e13;color:#e0eaf0;font-family:system-ui,sans-serif;min-height:100vh}
+.hdr{background:#111820;border-bottom:1px solid #1e2d3d;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.hdr-title{font-size:16px;font-weight:700}
+.hdr-sub{font-size:11px;color:#4a6070;margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);background:#111820;border-bottom:1px solid #1e2d3d}
+.stat{padding:10px;text-align:center;border-right:1px solid #1e2d3d}
+.stat:last-child{border-right:none}
+.stat-n{font-size:22px;font-weight:700;font-family:monospace}
+.stat-l{font-size:10px;color:#4a6070;text-transform:uppercase;letter-spacing:1px}
+.tabs{display:flex;background:#111820;border-bottom:1px solid #1e2d3d}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:11px;font-weight:700;color:#4a6070;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:#00e5ff;border-bottom-color:#00e5ff}
+.page{display:none;padding:12px;padding-bottom:20px}
+.page.on{display:block}
+.card{background:#111820;border:1px solid #1e2d3d;border-radius:12px;margin-bottom:10px;overflow:hidden}
+.card-h{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between}
+.card-n{font-size:14px;font-weight:700}
+.card-m{font-size:11px;color:#4a6070;margin-top:2px}
+.pbar{height:3px;background:#1a2330;margin:0 14px}
+.pfill{height:100%;border-radius:2px;transition:width .4s}
+.card-b{padding:10px 14px 12px}
+.next-box{background:#1a2330;border-radius:8px;padding:10px;margin-bottom:10px;text-align:center}
+.next-l{font-size:11px;color:#4a6070;margin-bottom:4px}
+.next-r{font-size:22px;font-weight:700;color:#00e5ff;font-family:monospace}
+.next-s{font-size:11px;color:#4a6070;margin-top:2px}
+.row{display:flex;gap:8px}
+.btn{padding:9px 12px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;flex:1;text-align:center}
+.btn-a{background:#00e5ff;color:#000}
+.btn-g{background:#00e676;color:#000}
+.btn-gh{background:#1a2330;color:#e0eaf0;border:1px solid #1e2d3d}
+.btn-r{background:#ff525220;color:#ff5252;border:1px solid #ff525240}
 .btn-sm{padding:7px 10px;font-size:11px;flex:none}
-
-/* HISTORY */
-.history-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px}
-.history-acc{font-size:13px;font-weight:700;color:var(--accent)}
-.history-range{font-size:12px;color:var(--muted);margin-top:2px;font-family:monospace}
-.history-date{font-size:11px;color:var(--muted);margin-top:4px}
-.history-plts{display:flex;gap:4px;margin-top:6px}
-.history-plt{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:420px;border-top:1px solid var(--border);max-height:90vh;overflow-y:auto}
-.modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
-.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
-
-.field{margin-bottom:14px}
-.field-label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
-.field input,.field select{width:100%;padding:11px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;outline:none}
-.field input:focus,.field select:focus{border-color:var(--accent)}
-
-.checkrow{display:flex;gap:10px;flex-wrap:wrap}
-.chk-label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;flex:1;justify-content:center}
-.chk-label input{accent-color:var(--accent);width:16px;height:16px}
-
-/* SETUP */
-.setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:12px}
-.setup-title{font-size:14px;font-weight:700;margin-bottom:4px}
-.setup-sub{font-size:12px;color:var(--muted);margin-bottom:14px}
-
-/* EMPTY */
-.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
-.empty-icon{font-size:40px;margin-bottom:10px}
-
-/* TOPIC LIST */
-.topic-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;cursor:pointer}
-.topic-name{font-size:13px;font-weight:600}
-.topic-id{font-size:11px;color:var(--muted);font-family:monospace}
-
-/* LOADING */
-.loading{text-align:center;padding:30px;color:var(--muted)}
-.spin{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1}
-
-/* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
-.bnav-item{flex:1;padding:10px 4px;text-align:center;cursor:pointer;color:var(--muted);font-size:10px;letter-spacing:.5px;transition:color .2s}
-.bnav-item.active{color:var(--accent)}
-.bnav-icon{font-size:20px;margin-bottom:2px}
-
-.content{padding-bottom:80px}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
+.bg{background:#00e67620;color:#00e676}
+.by{background:#ffd74020;color:#ffd740}
+.plts{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.plt{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:flex-end;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:#111820;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:440px;border-top:1px solid #1e2d3d;max-height:85vh;overflow-y:auto}
+.modal-h{width:36px;height:4px;background:#1e2d3d;border-radius:2px;margin:0 auto 16px}
+.modal-t{font-size:16px;font-weight:700;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field-l{font-size:11px;color:#4a6070;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.field input,.field select{width:100%;padding:11px 13px;background:#1a2330;border:1px solid #1e2d3d;border-radius:9px;color:#e0eaf0;font-size:14px;outline:none}
+.chkrow{display:flex;gap:8px}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:9px 12px;background:#1a2330;border:1px solid #1e2d3d;border-radius:8px;flex:1;justify-content:center}
+.setup{background:#111820;border:1px solid #1e2d3d;border-radius:12px;padding:18px;margin-bottom:12px}
+.setup-t{font-size:14px;font-weight:700;margin-bottom:3px}
+.setup-s{font-size:12px;color:#4a6070;margin-bottom:12px}
+.hist{background:#111820;border:1px solid #1e2d3d;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.hist-a{font-size:13px;font-weight:700;color:#00e5ff}
+.hist-r{font-size:12px;color:#4a6070;margin-top:2px;font-family:monospace}
+.hist-d{font-size:11px;color:#4a6070;margin-top:4px}
+.empty{text-align:center;padding:40px 20px;color:#4a6070;font-size:14px}
+.topic-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111820;border:1px solid #1e2d3d;border-radius:9px;margin-bottom:6px;cursor:pointer}
+.topic-n{font-size:13px;font-weight:600}
+.topic-s{font-size:11px;color:#4a6070;margin-top:2px;font-family:monospace}
+.spin-box{text-align:center;padding:30px;color:#4a6070}
+.spin{display:inline-block;width:24px;height:24px;border:2px solid #1e2d3d;border-top-color:#00e5ff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1a2330;border:1px solid #1e2d3d;border-radius:10px;padding:10px 18px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
 </style>
 </head>
 <body>
 
-<div class="header">
+<div class="hdr">
   <div>
-    <div class="header-title">📱 Post Manager</div>
-    <div class="header-sub" id="hdr-sub">American Studio × TikTok Studio</div>
+    <div class="hdr-title">Post Manager</div>
+    <div class="hdr-sub" id="hdr-d">American Studio x TikTok Studio</div>
   </div>
-  <button class="btn btn-ghost btn-sm" onclick="showAddModal()">+ Shto</button>
+  <button class="btn btn-gh btn-sm" id="btn-add">+ Shto</button>
 </div>
 
-<div class="stats-bar">
-  <div class="stat-item">
-    <div class="stat-num" id="s-accounts" style="color:var(--accent)">0</div>
-    <div class="stat-lbl">Accounts</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-num" id="s-today" style="color:var(--green)">0</div>
-    <div class="stat-lbl">Sot</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-num" id="s-total" style="color:var(--yellow)">0</div>
-    <div class="stat-lbl">Total</div>
-  </div>
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="s1" style="color:#00e5ff">0</div><div class="stat-l">Accounts</div></div>
+  <div class="stat"><div class="stat-n" id="s2" style="color:#00e676">0</div><div class="stat-l">Sot</div></div>
+  <div class="stat"><div class="stat-n" id="s3" style="color:#ffd740">0</div><div class="stat-l">Total</div></div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('queue',this)">🎬 Queue</div>
-  <div class="tab" onclick="showTab('history',this)">📋 Historia</div>
-  <div class="tab" onclick="showTab('telegram',this)">✈️ Telegram</div>
-  <div class="tab" onclick="showTab('settings',this)">⚙️ Settings</div>
+  <div class="tab on" id="t1">Queue</div>
+  <div class="tab" id="t2">Historia</div>
+  <div class="tab" id="t3">Telegram</div>
+  <div class="tab" id="t4">Settings</div>
 </div>
 
-<div class="content">
-
-<!-- QUEUE TAB -->
-<div class="page active" id="tab-queue">
-  <div id="queue-list"></div>
+<div class="page on" id="p1"><div id="queue-el"></div></div>
+<div class="page" id="p2"><div id="hist-el"></div></div>
+<div class="page" id="p3">
+  <div style="margin-bottom:10px">
+    <button class="btn btn-a" id="btn-topics" style="width:100%">Ngarko Topics nga Telegram</button>
+  </div>
+  <div id="topics-el"><div class="empty">Shtyp butonin per te ngarkuar topics</div></div>
 </div>
-
-<!-- HISTORY TAB -->
-<div class="page" id="tab-history">
-  <div id="history-list"></div>
-</div>
-
-<!-- TELEGRAM TAB -->
-<div class="page" id="tab-telegram">
-  <div style="margin-bottom:12px">
-    <button class="btn btn-primary" onclick="loadTopics()" style="width:100%">
-      🔄 Ngarko Topics nga Telegram
-    </button>
+<div class="page" id="p4">
+  <div class="setup">
+    <div class="setup-t">Telegram Bot</div>
+    <div class="setup-s">Vendos te dhenat e bot-it</div>
+    <div class="field"><div class="field-l">Bot Token</div><input id="cfg-tok" type="password" placeholder="8738753901:AAGJ..."></div>
+    <div class="field"><div class="field-l">Group Chat ID</div><input id="cfg-grp" placeholder="-1003950290594"></div>
+    <button class="btn btn-a" id="btn-save-cfg" style="width:100%">Ruaj Settings</button>
   </div>
-  <div id="topics-list">
-    <div class="empty">
-      <div class="empty-icon">✈️</div>
-      Shtyp butonin për të ngarkuar topics
-    </div>
+  <div class="setup">
+    <div class="setup-t">Statistika</div>
+    <div class="setup-s">Overview i plote</div>
+    <div id="stats-el"></div>
   </div>
-</div>
-
-<!-- SETTINGS TAB -->
-<div class="page" id="tab-settings">
-  <div class="setup-card">
-    <div class="setup-title">🤖 Telegram Bot</div>
-    <div class="setup-sub">Vendos të dhënat e bot-it</div>
-    <div class="field">
-      <div class="field-label">Bot Token</div>
-      <input id="cfg-token" type="password" placeholder="8738753901:AAGJ..." value="">
-    </div>
-    <div class="field">
-      <div class="field-label">Group Chat ID</div>
-      <input id="cfg-group" placeholder="-1003950290594" value="">
-    </div>
-    <button class="btn btn-primary" onclick="saveSettings()" style="width:100%">
-      💾 Ruaj Settings
-    </button>
-  </div>
-
-  <div class="setup-card">
-    <div class="setup-title">📊 Statistika</div>
-    <div class="setup-sub">Overview i plotë</div>
-    <div id="full-stats"></div>
-  </div>
-
-  <div class="setup-card" style="border-color:var(--red)40">
-    <div class="setup-title" style="color:var(--red)">⚠️ Reset</div>
-    <div class="setup-sub">Fshi të gjitha të dhënat</div>
-    <button class="btn btn-danger" onclick="resetAll()" style="width:100%">
-      Fshi gjithçka
-    </button>
+  <div class="setup" style="border-color:#ff525240">
+    <div class="setup-t" style="color:#ff5252">Reset</div>
+    <div class="setup-s">Fshi te gjitha te dhenat</div>
+    <button class="btn btn-r" id="btn-reset" style="width:100%">Fshi gjitheçka</button>
   </div>
 </div>
 
-</div>
-
-<!-- ADD ACCOUNT MODAL -->
-<div class="modal-overlay" id="modal-add">
+<!-- ADD MODAL -->
+<div class="modal-bg" id="m-add">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">➕ Shto Account</div>
-    <div class="field">
-      <div class="field-label">Emri / Username</div>
-      <input id="inp-name" placeholder="@candygirlsamira">
-    </div>
-    <div class="field">
-      <div class="field-label">Lloji</div>
-      <select id="inp-type">
-        <option value="tiktok">🎵 TikTok Studio</option>
-        <option value="studio">🤖 American Studio PRO</option>
+    <div class="modal-h"></div>
+    <div class="modal-t">Shto Account</div>
+    <div class="field"><div class="field-l">Emri / Username</div><input id="i-name" placeholder="@candygirlsamira"></div>
+    <div class="field"><div class="field-l">Lloji</div>
+      <select id="i-type">
+        <option value="tiktok">TikTok Studio</option>
+        <option value="studio">American Studio PRO</option>
       </select>
     </div>
+    <div class="field"><div class="field-l">Total video ne Telegram</div><input id="i-tot" type="number" placeholder="703"></div>
+    <div class="field"><div class="field-l">Fillon nga video nr.</div><input id="i-start" type="number" placeholder="0" value="0"></div>
     <div class="field">
-      <div class="field-label">Total video në Telegram</div>
-      <input id="inp-total" type="number" placeholder="703">
-    </div>
-    <div class="field">
-      <div class="field-label">Duke filluar nga video nr.</div>
-      <input id="inp-start" type="number" placeholder="0 = fillon nga e para" value="0">
-    </div>
-    <div class="field">
-      <div class="field-label">Platformat</div>
-      <div class="checkrow">
-        <label class="chk-label"><input type="checkbox" id="chk-ig" checked>📸 IG</label>
-        <label class="chk-label"><input type="checkbox" id="chk-sc">👻 SC</label>
-        <label class="chk-label"><input type="checkbox" id="chk-fb">📘 FB</label>
+      <div class="field-l">Platformat</div>
+      <div class="chkrow">
+        <label class="chk"><input type="checkbox" id="c-ig" checked> IG</label>
+        <label class="chk"><input type="checkbox" id="c-sc"> SC</label>
+        <label class="chk"><input type="checkbox" id="c-fb"> FB</label>
       </div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:4px">
-      <button class="btn btn-ghost" onclick="closeModal('modal-add')" style="flex:1">Anulo</button>
-      <button class="btn btn-primary" onclick="saveAccount()" style="flex:1">Shto ✓</button>
+    <div class="row" style="margin-top:8px">
+      <button class="btn btn-gh" id="btn-add-cancel">Anulo</button>
+      <button class="btn btn-a" id="btn-add-ok">Shto</button>
     </div>
   </div>
 </div>
 
-<!-- POST TODAY MODAL -->
-<div class="modal-overlay" id="modal-post">
+<!-- POST MODAL -->
+<div class="modal-bg" id="m-post">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="mp-title">Posto Sot</div>
-
-    <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Shkarko nga Telegram këto video:</div>
-      <div style="font-size:32px;font-weight:700;color:var(--accent);font-family:monospace" id="mp-range"></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="mp-sub"></div>
+    <div class="modal-h"></div>
+    <div class="modal-t" id="mp-t">Posto Sot</div>
+    <div class="next-box" style="margin-bottom:14px">
+      <div class="next-l">Shkarko nga Telegram keto video:</div>
+      <div class="next-r" id="mp-range">-</div>
+      <div class="next-s" id="mp-sub"></div>
     </div>
-
+    <div class="field"><div class="field-l">Sa video sot?</div><input id="mp-cnt" type="number" min="1" max="50" value="3"></div>
     <div class="field">
-      <div class="field-label">Sa video sot?</div>
-      <input id="mp-count" type="number" min="1" max="50" value="3" oninput="updatePostPreview()">
+      <div class="field-l" style="margin-bottom:8px">Postuar ne:</div>
+      <div class="chkrow" id="mp-plts"></div>
     </div>
-
-    <div style="margin-bottom:14px">
-      <div class="field-label" style="margin-bottom:8px">Postuar në:</div>
-      <div class="checkrow" id="mp-platforms"></div>
-    </div>
-
-    <div style="display:flex;gap:10px">
-      <button class="btn btn-ghost" onclick="closeModal('modal-post')" style="flex:1">Anulo</button>
-      <button class="btn btn-success" onclick="confirmPost()" style="flex:1">✅ Konfirmo</button>
+    <div class="row">
+      <button class="btn btn-gh" id="btn-post-cancel">Anulo</button>
+      <button class="btn btn-g" id="btn-post-ok">Konfirmo</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast-el"></div>
 
 <script>
-// ═══════════════════════════════
-// DATA
-// ═══════════════════════════════
-let accounts = JSON.parse(localStorage.getItem('pm_accounts') || '[]');
-let history  = JSON.parse(localStorage.getItem('pm_history')  || '[]');
-let cfg      = JSON.parse(localStorage.getItem('pm_cfg')      || '{}');
-let activeIdx = -1;
+var ACC = JSON.parse(localStorage.getItem('pm_a') || '[]');
+var HIST = JSON.parse(localStorage.getItem('pm_h') || '[]');
+var CFG = JSON.parse(localStorage.getItem('pm_c') || '{}');
+var activeIdx = -1;
 
-const PLT_INFO = {
-  ig: {label:'Instagram', color:'#e1306c', bg:'#e1306c18'},
-  sc: {label:'Snapchat',  color:'#fffc00', bg:'#fffc0018'},
-  fb: {label:'Facebook',  color:'#1877f2', bg:'#1877f218'},
-};
+var PLT = {ig:{l:'Instagram',c:'#e1306c'},sc:{l:'Snapchat',c:'#fffc00'},fb:{l:'Facebook',c:'#1877f2'}};
 
-function saveData(){
-  localStorage.setItem('pm_accounts', JSON.stringify(accounts));
-  localStorage.setItem('pm_history',  JSON.stringify(history));
+function save(){
+  localStorage.setItem('pm_a', JSON.stringify(ACC));
+  localStorage.setItem('pm_h', JSON.stringify(HIST));
 }
 
-function todayStr(){
-  return new Date().toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'});
+function today(){
+  var d = new Date();
+  return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
 }
 
-// ═══════════════════════════════
-// TOAST
-// ═══════════════════════════════
-let toastTimer;
-function toast(msg, ms=2500){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), ms);
+var toastTmr;
+function showToast(msg){
+  var el = document.getElementById('toast-el');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(function(){el.classList.remove('on');}, 2500);
 }
 
-// ═══════════════════════════════
 // TABS
-// ═══════════════════════════════
-function showTab(name, el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  el.classList.add('active');
-  if(name==='queue') renderQueue();
-  if(name==='history') renderHistory();
-  if(name==='settings') renderSettings();
-}
+var tabs = [
+  {tab:'t1', page:'p1', fn: renderQueue},
+  {tab:'t2', page:'p2', fn: renderHist},
+  {tab:'t3', page:'p3', fn: null},
+  {tab:'t4', page:'p4', fn: renderSettings}
+];
+tabs.forEach(function(item, i){
+  document.getElementById(item.tab).addEventListener('click', function(){
+    tabs.forEach(function(x){
+      document.getElementById(x.tab).classList.remove('on');
+      document.getElementById(x.page).classList.remove('on');
+    });
+    document.getElementById(item.tab).classList.add('on');
+    document.getElementById(item.page).classList.add('on');
+    if(item.fn) item.fn();
+  });
+});
 
-// ═══════════════════════════════
 // STATS
-// ═══════════════════════════════
 function updateStats(){
-  const today = todayStr();
-  const todayH = history.filter(h=>h.date===today);
-  const todayCount = todayH.reduce((s,h)=>s+h.count, 0);
-  const totalPosted = accounts.reduce((s,a)=>s+a.current, 0);
-
-  document.getElementById('s-accounts').textContent = accounts.length;
-  document.getElementById('s-today').textContent = todayCount;
-  document.getElementById('s-total').textContent = totalPosted;
+  var tod = today();
+  var todCount = HIST.filter(function(h){return h.date===tod;}).reduce(function(s,h){return s+h.count;},0);
+  var totPosted = ACC.reduce(function(s,a){return s+a.cur;},0);
+  document.getElementById('s1').textContent = ACC.length;
+  document.getElementById('s2').textContent = todCount;
+  document.getElementById('s3').textContent = totPosted;
 }
 
-// ═══════════════════════════════
 // QUEUE
-// ═══════════════════════════════
 function renderQueue(){
-  const el = document.getElementById('queue-list');
   updateStats();
-
-  if(!accounts.length){
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>Nuk ka accounts ende.<br>Shtyp "+ Shto" për të filluar.</div>`;
+  var el = document.getElementById('queue-el');
+  if(!ACC.length){
+    el.innerHTML = '<div class="empty">Nuk ka accounts.<br>Shtyp "+ Shto" per te filluar.</div>';
     return;
   }
+  var tod = today();
+  var html = '';
+  ACC.forEach(function(a, i){
+    var pct = Math.round((a.cur/a.tot)*100);
+    var rem = a.tot - a.cur;
+    var todH = HIST.filter(function(h){return h.date===tod && h.acc===a.name;});
+    var todC = todH.reduce(function(s,h){return s+h.count;},0);
+    var done = rem === 0;
+    var nFrom = a.cur+1;
+    var nTo = Math.min(a.cur+3, a.tot);
+    var icon = a.type==='studio' ? '[AI]' : '[TK]';
+    var badge = done ? '<span class="badge bg">Komplet</span>' : (todC>0 ? '<span class="badge bg">+'+todC+' sot</span>' : (pct>=80?'<span class="badge by">80%+</span>':''));
+    var pltsHtml = a.plts.map(function(p){
+      return '<span class="plt" style="background:'+PLT[p].c+'20;color:'+PLT[p].c+'">'+PLT[p].l+'</span>';
+    }).join('');
 
-  const today = todayStr();
-
-  el.innerHTML = accounts.map((a,i)=>{
-    const pct = Math.round((a.current/a.total)*100);
-    const remaining = a.total - a.current;
-    const todayH = history.filter(h=>h.date===today && h.acc===a.name);
-    const todayCount = todayH.reduce((s,h)=>s+h.count,0);
-    const done = remaining === 0;
-    const nextFrom = a.current + 1;
-    const nextTo   = Math.min(a.current + 3, a.total);
-
-    const typeIcon = a.type === 'studio' ? '🤖' : '🎵';
-    const typeLbl  = a.type === 'studio' ? 'Studio PRO' : 'TikTok';
-
-    let badgeHtml = '';
-    if(done) badgeHtml = `<span class="card-badge badge-green">✓ Komplet</span>`;
-    else if(pct >= 80) badgeHtml = `<span class="card-badge badge-yellow">80%+</span>`;
-    else if(todayCount > 0) badgeHtml = `<span class="card-badge badge-green">+${todayCount} sot</span>`;
-
-    const pltColors = {ig:'#e1306c',sc:'#fffc00',fb:'#1877f2'};
-    const pltsHtml = a.platforms.map(p=>
-      `<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:${pltColors[p]}20;color:${pltColors[p]};font-weight:700;">${PLT_INFO[p].label}</span>`
-    ).join('');
-
-    return `
-    <div class="account-card ${done?'completed':''}">
-      <div class="card-header">
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:14px">${typeIcon}</span>
-            <div class="card-name">${a.name}</div>
-          </div>
-          <div class="card-meta">${typeLbl} · ${a.current}/${a.total} · ${remaining} mbetur</div>
-        </div>
-        ${badgeHtml}
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width:${pct}%;background:${done?'var(--green)':'var(--accent)'}"></div>
-      </div>
-      <div class="card-body">
-        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">${pltsHtml}</div>
-        ${!done ? `
-        <div class="today-info">
-          <div class="today-label">Radhja tjetër</div>
-          <div class="today-range">#${nextFrom} — #${nextTo}</div>
-          <div class="today-sub">Shkarko nga Telegram</div>
-        </div>
-        <div class="action-row">
-          <button class="btn btn-primary" onclick="showPostModal(${i})">📲 Posto Sot</button>
-          <button class="btn btn-ghost btn-sm" onclick="editAccount(${i})">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteAccount(${i})">🗑️</button>
-        </div>` : `
-        <div style="text-align:center;color:var(--green);font-size:13px;padding:6px">
-          ✅ Të gjitha videot u postuan!
-        </div>
-        <div class="action-row">
-          <button class="btn btn-ghost btn-sm" onclick="resetAccount(${i})">🔄 Reset</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteAccount(${i})">🗑️ Fshi</button>
-        </div>`}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ═══════════════════════════════
-// HISTORY
-// ═══════════════════════════════
-function renderHistory(){
-  const el = document.getElementById('history-list');
-  if(!history.length){
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>Nuk ka histori ende.</div>`;
-    return;
-  }
-  const sorted = [...history].reverse();
-  el.innerHTML = sorted.map(h=>{
-    const pltsHtml = (h.platforms||[]).map(p=>
-      `<span class="history-plt" style="background:${PLT_INFO[p].bg};color:${PLT_INFO[p].color}">${PLT_INFO[p].label}</span>`
-    ).join('');
-    return `
-    <div class="history-item">
-      <div class="history-acc">${h.acc}</div>
-      <div class="history-range">Video #${h.from} — #${h.to} (${h.count} video)</div>
-      <div class="history-date">📅 ${h.date}</div>
-      <div class="history-plts">${pltsHtml}</div>
-    </div>`;
-  }).join('');
-}
-
-// ═══════════════════════════════
-// SETTINGS
-// ═══════════════════════════════
-function renderSettings(){
-  const c = JSON.parse(localStorage.getItem('pm_cfg')||'{}');
-  document.getElementById('cfg-token').value = c.token || '';
-  document.getElementById('cfg-group').value = c.group || '';
-
-  const el = document.getElementById('full-stats');
-  if(!accounts.length){el.innerHTML='<div style="color:var(--muted);font-size:13px">Nuk ka accounts</div>';return;}
-  el.innerHTML = accounts.map(a=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:13px">${a.name}</div>
-      <div style="font-size:12px;color:var(--muted);font-family:monospace">${a.current}/${a.total}</div>
-    </div>`).join('');
-}
-
-function saveSettings(){
-  const token = document.getElementById('cfg-token').value.trim();
-  const group = document.getElementById('cfg-group').value.trim();
-  cfg = {token, group};
-  localStorage.setItem('pm_cfg', JSON.stringify(cfg));
-  toast('✅ Settings u ruajtën!');
-}
-
-// ═══════════════════════════════
-// MODALS
-// ═══════════════════════════════
-function showAddModal(){
-  document.getElementById('inp-name').value='';
-  document.getElementById('inp-total').value='';
-  document.getElementById('inp-start').value='0';
-  document.getElementById('chk-ig').checked=true;
-  document.getElementById('chk-sc').checked=false;
-  document.getElementById('chk-fb').checked=false;
-  document.getElementById('modal-add').classList.add('open');
-}
-
-function closeModal(id){
-  document.getElementById(id).classList.remove('open');
-}
-
-function saveAccount(){
-  const name = document.getElementById('inp-name').value.trim();
-  const type = document.getElementById('inp-type').value;
-  const total = parseInt(document.getElementById('inp-total').value)||0;
-  const start = parseInt(document.getElementById('inp-start').value)||0;
-  const plts = [];
-  if(document.getElementById('chk-ig').checked) plts.push('ig');
-  if(document.getElementById('chk-sc').checked) plts.push('sc');
-  if(document.getElementById('chk-fb').checked) plts.push('fb');
-
-  if(!name||!total||!plts.length){toast('⚠️ Plotëso të gjitha fushat!');return;}
-
-  accounts.push({name,type,total,current:start,platforms:plts,createdAt:new Date().toISOString()});
-  saveData();
-  closeModal('modal-add');
-  renderQueue();
-  toast('✅ Account u shtua!');
-}
-
-// ═══════════════════════════════
-// POST MODAL
-// ═══════════════════════════════
-function showPostModal(idx){
-  activeIdx = idx;
-  const a = accounts[idx];
-  document.getElementById('mp-title').textContent = `📲 ${a.name}`;
-  document.getElementById('mp-count').value = Math.min(3, a.total-a.current);
-
-  const pltEl = document.getElementById('mp-platforms');
-  pltEl.innerHTML = a.platforms.map(p=>`
-    <label class="chk-label" style="border-color:${PLT_INFO[p].color}40">
-      <input type="checkbox" class="mp-plt" value="${p}" checked>
-      ${PLT_INFO[p].label}
-    </label>`).join('');
-
-  updatePostPreview();
-  document.getElementById('modal-post').classList.add('open');
-}
-
-function updatePostPreview(){
-  if(activeIdx<0) return;
-  const a = accounts[activeIdx];
-  const count = Math.min(parseInt(document.getElementById('mp-count').value)||1, a.total-a.current);
-  const from = a.current+1;
-  const to = Math.min(a.current+count, a.total);
-  document.getElementById('mp-range').textContent = from===to ? `#${from}` : `#${from} — #${to}`;
-  document.getElementById('mp-sub').textContent = `${count} video · mbeten ${a.total-to}`;
-}
-
-function confirmPost(){
-  const a = accounts[activeIdx];
-  const count = Math.min(parseInt(document.getElementById('mp-count').value)||1, a.total-a.current);
-  const from = a.current+1;
-  const to = Math.min(a.current+count, a.total);
-  const plts = [...document.querySelectorAll('.mp-plt:checked')].map(c=>c.value);
-
-  if(!plts.length){toast('⚠️ Zgjedh platformën!');return;}
-
-  a.current = to;
-  history.push({acc:a.name, date:todayStr(), count, from, to, platforms:plts});
-  saveData();
-  closeModal('modal-post');
-  renderQueue();
-  toast(`✅ ${count} video u shënuan si postuar!`);
-}
-
-// ═══════════════════════════════
-// ACCOUNT ACTIONS
-// ═══════════════════════════════
-function editAccount(idx){
-  const a = accounts[idx];
-  const newTotal = prompt(`Total video për ${a.name}:`, a.total);
-  if(newTotal && !isNaN(newTotal)){
-    a.total = parseInt(newTotal);
-    saveData();
-    renderQueue();
-    toast('✅ U përditësua!');
-  }
-}
-
-function deleteAccount(idx){
-  if(confirm(`Fshi ${accounts[idx].name}?`)){
-    accounts.splice(idx,1);
-    saveData();
-    renderQueue();
-    toast('🗑️ Account u fshi!');
-  }
-}
-
-function resetAccount(idx){
-  if(confirm(`Reset progresin për ${accounts[idx].name}?`)){
-    accounts[idx].current=0;
-    saveData();
-    renderQueue();
-    toast('🔄 Progress u reset!');
-  }
-}
-
-function resetAll(){
-  if(confirm('Fshi TË GJITHA të dhënat?')){
-    accounts=[];history=[];
-    saveData();
-    renderQueue();
-    toast('🗑️ Gjithçka u fshi!');
-  }
-}
-
-// ═══════════════════════════════
-// TELEGRAM TOPICS
-// ═══════════════════════════════
-async function loadTopics(){
-  const c = JSON.parse(localStorage.getItem('pm_cfg')||'{}');
-  if(!c.token||!c.group){
-    toast('Vendos Bot Token dhe Group ID ne Settings!');
-    return;
-  }
-  const el = document.getElementById('topics-list');
-  el.innerHTML = '<div class="loading"><div class="spin"></div><br>Duke ngarkuar...</div>';
-  try{
-    const r = await fetch('https://api.telegram.org/bot'+c.token+'/getForumTopics?chat_id='+c.group+'&limit=100');
-    const d = await r.json();
-    if(d.ok && d.result && d.result.topics && d.result.topics.length){
-      const topics = d.result.topics;
-      let html = '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">'+topics.length+' topics u gjetën</div>';
-      topics.forEach(t=>{
-        html += '<div class="topic-item" onclick="addFromTopic(''+t.name+'','+t.message_thread_id+')">';
-        html += '<div><div class="topic-name">'+t.name+'</div>';
-        html += '<div class="topic-id">thread: '+t.message_thread_id+'</div></div>';
-        html += '<span style="color:var(--accent);font-size:18px">+</span></div>';
-      });
-      el.innerHTML = html;
+    html += '<div class="card">';
+    html += '<div class="card-h"><div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#4a6070">'+icon+'</span><div class="card-n">'+a.name+'</div></div>';
+    html += '<div class="card-m">'+a.cur+'/'+a.tot+' · '+rem+' mbetur</div></div>'+badge+'</div>';
+    html += '<div class="pbar"><div class="pfill" style="width:'+pct+'%;background:'+(done?'#00e676':'#00e5ff')+'"></div></div>';
+    html += '<div class="card-b"><div class="plts">'+pltsHtml+'</div>';
+    if(!done){
+      html += '<div class="next-box"><div class="next-l">Radhja tjeter</div><div class="next-r">#'+nFrom+' - #'+nTo+'</div><div class="next-s">Shkarko nga Telegram</div></div>';
+      html += '<div class="row"><button class="btn btn-a" onclick="openPostModal('+i+')">Posto Sot</button>';
+      html += '<button class="btn btn-gh btn-sm" onclick="editAcc('+i+')">Edit</button>';
+      html += '<button class="btn btn-r btn-sm" onclick="delAcc('+i+')">Fshi</button></div>';
     } else {
-      showManualAccounts(el, d.description||'Topics nuk u gjetën');
+      html += '<div style="text-align:center;color:#00e676;font-size:13px;padding:6px">Gjithe videot u postuan!</div>';
+      html += '<div class="row"><button class="btn btn-gh btn-sm" onclick="resetAcc('+i+')">Reset</button>';
+      html += '<button class="btn btn-r btn-sm" onclick="delAcc('+i+')">Fshi</button></div>';
     }
-  }catch(e){
-    showManualAccounts(el, e.message);
-  }
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
 }
 
-function showManualAccounts(el, err){
-  const known = ['@samanthathomas98','@boho.bloom','@stella.rampant','@diva_maria98','@candygirlsamira','@mollyqn86e','@milenestone','@adelaida3445','@alisabarbismiter'];
-  const saved = JSON.parse(localStorage.getItem('pm_accounts')||'[]').map(a=>a.name);
-  const available = known.filter(k=>!saved.includes(k));
-  let html = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">';
-  html += '<div style="font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:4px">Shto manualisht</div>';
-  html += '<div style="font-size:11px;color:var(--muted)">'+err+'</div></div>';
-  if(available.length){
-    html += '<div style="font-size:12px;color:var(--accent);margin-bottom:8px">Accounts te njohura:</div>';
-    available.forEach(a=>{
-      html += '<div class="topic-item" onclick="addManual(''+a+'')">';
-      html += '<div><div class="topic-name">'+a+'</div>';
-      html += '<div class="topic-id">Kliko per te shtuar</div></div>';
-      html += '<span style="color:var(--accent);font-size:18px">+</span></div>';
+// HISTORY
+function renderHist(){
+  var el = document.getElementById('hist-el');
+  if(!HIST.length){el.innerHTML='<div class="empty">Nuk ka histori ende.</div>';return;}
+  var html = '';
+  var sorted = HIST.slice().reverse();
+  sorted.forEach(function(h){
+    var plts = (h.plts||[]).map(function(p){return '<span class="plt" style="background:'+PLT[p].c+'20;color:'+PLT[p].c+'">'+PLT[p].l+'</span>';}).join('');
+    html += '<div class="hist"><div class="hist-a">'+h.acc+'</div>';
+    html += '<div class="hist-r">Video #'+h.from+' - #'+h.to+' ('+h.count+' video)</div>';
+    html += '<div class="hist-d">'+h.date+'</div>';
+    html += '<div class="plts" style="margin-top:6px">'+plts+'</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// SETTINGS
+function renderSettings(){
+  var c = JSON.parse(localStorage.getItem('pm_c')||'{}');
+  document.getElementById('cfg-tok').value = c.token||'';
+  document.getElementById('cfg-grp').value = c.group||'';
+  var el = document.getElementById('stats-el');
+  if(!ACC.length){el.innerHTML='<div style="color:#4a6070;font-size:13px">Nuk ka accounts</div>';return;}
+  var html = '';
+  ACC.forEach(function(a){
+    html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e2d3d">';
+    html += '<div style="font-size:13px">'+a.name+'</div>';
+    html += '<div style="font-size:12px;color:#4a6070;font-family:monospace">'+a.cur+'/'+a.tot+'</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ADD ACCOUNT
+document.getElementById('btn-add').addEventListener('click', function(){
+  document.getElementById('i-name').value='';
+  document.getElementById('i-tot').value='';
+  document.getElementById('i-start').value='0';
+  document.getElementById('c-ig').checked=true;
+  document.getElementById('c-sc').checked=false;
+  document.getElementById('c-fb').checked=false;
+  document.getElementById('m-add').classList.add('on');
+});
+document.getElementById('btn-add-cancel').addEventListener('click', function(){
+  document.getElementById('m-add').classList.remove('on');
+});
+document.getElementById('btn-add-ok').addEventListener('click', function(){
+  var name = document.getElementById('i-name').value.trim();
+  var type = document.getElementById('i-type').value;
+  var tot = parseInt(document.getElementById('i-tot').value)||0;
+  var start = parseInt(document.getElementById('i-start').value)||0;
+  var plts = [];
+  if(document.getElementById('c-ig').checked) plts.push('ig');
+  if(document.getElementById('c-sc').checked) plts.push('sc');
+  if(document.getElementById('c-fb').checked) plts.push('fb');
+  if(!name||!tot||!plts.length){showToast('Ploteso te gjitha fushat!');return;}
+  ACC.push({name:name,type:type,tot:tot,cur:start,plts:plts});
+  save();
+  document.getElementById('m-add').classList.remove('on');
+  renderQueue();
+  showToast('Account u shtua!');
+});
+
+// POST MODAL
+function openPostModal(i){
+  activeIdx = i;
+  var a = ACC[i];
+  document.getElementById('mp-t').textContent = a.name;
+  document.getElementById('mp-cnt').value = Math.min(3, a.tot-a.cur);
+  var pltsHtml = a.plts.map(function(p){
+    return '<label class="chk" style="border-color:'+PLT[p].c+'40"><input type="checkbox" class="mp-p" value="'+p+'" checked> '+PLT[p].l+'</label>';
+  }).join('');
+  document.getElementById('mp-plts').innerHTML = pltsHtml;
+  updatePreview();
+  document.getElementById('m-post').classList.add('on');
+}
+function updatePreview(){
+  if(activeIdx<0) return;
+  var a = ACC[activeIdx];
+  var cnt = Math.min(parseInt(document.getElementById('mp-cnt').value)||1, a.tot-a.cur);
+  var from = a.cur+1;
+  var to = Math.min(a.cur+cnt, a.tot);
+  document.getElementById('mp-range').textContent = from===to ? '#'+from : '#'+from+' - #'+to;
+  document.getElementById('mp-sub').textContent = cnt+' video · mbeten '+(a.tot-to);
+}
+document.getElementById('mp-cnt').addEventListener('input', updatePreview);
+document.getElementById('btn-post-cancel').addEventListener('click', function(){
+  document.getElementById('m-post').classList.remove('on');
+});
+document.getElementById('btn-post-ok').addEventListener('click', function(){
+  var a = ACC[activeIdx];
+  var cnt = Math.min(parseInt(document.getElementById('mp-cnt').value)||1, a.tot-a.cur);
+  var from = a.cur+1;
+  var to = Math.min(a.cur+cnt, a.tot);
+  var plts = [];
+  document.querySelectorAll('.mp-p:checked').forEach(function(c){plts.push(c.value);});
+  if(!plts.length){showToast('Zgjedh platformen!');return;}
+  a.cur = to;
+  HIST.push({acc:a.name,date:today(),count:cnt,from:from,to:to,plts:plts});
+  save();
+  document.getElementById('m-post').classList.remove('on');
+  renderQueue();
+  showToast(cnt+' video u shenuan si postuar!');
+});
+
+// ACCOUNT ACTIONS
+function editAcc(i){
+  var a = ACC[i];
+  var v = prompt('Total video per '+a.name+':', a.tot);
+  if(v && !isNaN(v)){a.tot=parseInt(v);save();renderQueue();showToast('U perditesua!');}
+}
+function delAcc(i){
+  if(confirm('Fshi '+ACC[i].name+'?')){ACC.splice(i,1);save();renderQueue();showToast('Account u fshi!');}
+}
+function resetAcc(i){
+  if(confirm('Reset progresin per '+ACC[i].name+'?')){ACC[i].cur=0;save();renderQueue();showToast('Reset u be!');}
+}
+
+// SETTINGS SAVE
+document.getElementById('btn-save-cfg').addEventListener('click', function(){
+  var tok = document.getElementById('cfg-tok').value.trim();
+  var grp = document.getElementById('cfg-grp').value.trim();
+  localStorage.setItem('pm_c', JSON.stringify({token:tok,group:grp}));
+  CFG = {token:tok,group:grp};
+  showToast('Settings u ruajten!');
+});
+document.getElementById('btn-reset').addEventListener('click', function(){
+  if(confirm('Fshi gjithe te dhenat?')){
+    ACC=[];HIST=[];save();renderQueue();showToast('Gjithe te dhenat u fshen!');
+  }
+});
+
+// TELEGRAM TOPICS
+document.getElementById('btn-topics').addEventListener('click', function(){
+  var c = JSON.parse(localStorage.getItem('pm_c')||'{}');
+  if(!c.token||!c.group){showToast('Vendos Bot Token dhe Group ID ne Settings!');return;}
+  var el = document.getElementById('topics-el');
+  el.innerHTML = '<div class="spin-box"><div class="spin"></div><br>Duke ngarkuar...</div>';
+  fetch('https://api.telegram.org/bot'+c.token+'/getForumTopics?chat_id='+c.group+'&limit=100')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok && d.result && d.result.topics && d.result.topics.length){
+        var html = '<div style="font-size:12px;color:#4a6070;margin-bottom:8px">'+d.result.topics.length+' topics u gjeten</div>';
+        d.result.topics.forEach(function(t){
+          var safeName = t.name.replace(/'/g,"\\'");
+          html += '<div class="topic-row" onclick="addTopic(\''+safeName+'\','+t.message_thread_id+')">';
+          html += '<div><div class="topic-n">'+t.name+'</div><div class="topic-s">thread: '+t.message_thread_id+'</div></div>';
+          html += '<div style="color:#00e5ff;font-size:20px;font-weight:700">+</div></div>';
+        });
+        el.innerHTML = html;
+      } else {
+        showKnown(el, d.description||'Topics nuk u gjeten');
+      }
+    })
+    .catch(function(e){showKnown(el, e.message);});
+});
+
+function showKnown(el, err){
+  var known = ['@samanthathomas98','@boho.bloom','@stella.rampant','@diva_maria98','@candygirlsamira','@mollyqn86e','@milenestone','@adelaida3445','@alisabarbismiter'];
+  var saved = ACC.map(function(a){return a.name;});
+  var av = known.filter(function(k){return saved.indexOf(k)===-1;});
+  var html = '<div style="background:#111820;border:1px solid #ffd74040;border-radius:10px;padding:12px;margin-bottom:10px">';
+  html += '<div style="font-size:13px;font-weight:700;color:#ffd740;margin-bottom:3px">Shto manualisht</div>';
+  html += '<div style="font-size:11px;color:#4a6070">'+err+'</div></div>';
+  if(av.length){
+    html += '<div style="font-size:12px;color:#00e5ff;margin-bottom:6px">Accounts te njohura:</div>';
+    av.forEach(function(a){
+      html += '<div class="topic-row" onclick="addTopic(\''+a+'\',0)">';
+      html += '<div><div class="topic-n">'+a+'</div><div class="topic-s">Kliko per te shtuar</div></div>';
+      html += '<div style="color:#00e5ff;font-size:20px;font-weight:700">+</div></div>';
     });
   }
   el.innerHTML = html;
 }
 
-function addManual(name){
-  document.getElementById('inp-name').value = name;
-  document.getElementById('inp-type').value = 'tiktok';
-  showAddModal();
-  toast('Ploteso total video dhe shtyp Shto!');
+function addTopic(name, threadId){
+  document.getElementById('i-name').value = name;
+  document.getElementById('i-type').value = 'tiktok';
+  document.getElementById('c-ig').checked=true;
+  document.getElementById('c-sc').checked=false;
+  document.getElementById('c-fb').checked=false;
+  document.getElementById('i-tot').value='';
+  document.getElementById('i-start').value='0';
+  document.getElementById('m-add').classList.add('on');
+  showToast('Ploteso total video dhe shtyp Shto!');
 }
 
-function addFromTopic(name, threadId){
-  document.getElementById('inp-name').value = name;
-  document.getElementById('inp-type').value = 'tiktok';
-  showAddModal();
-  toast(`Topic "${name}" u zgjodhë!`);
-  showTab('queue', document.querySelector('.tab'));
-}
-
-// ═══════════════════════════════
 // INIT
-// ═══════════════════════════════
-const days = ['E diel','E hënë','E martë','E mërkurë','E enjte','E premte','E shtunë'];
-const d = new Date();
-document.getElementById('hdr-sub').textContent =
-  `${days[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-
+var days = ['E diel','E hene','E marte','E merkure','E enjte','E premte','E shtune'];
+var nd = new Date();
+document.getElementById('hdr-d').textContent = days[nd.getDay()]+' '+nd.getDate()+'/'+(nd.getMonth()+1)+'/'+nd.getFullYear();
 renderQueue();
 </script>
 </body>
