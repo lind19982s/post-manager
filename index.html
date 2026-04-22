@@ -612,43 +612,56 @@ function resetAll(){
 async function loadTopics(){
   const c = JSON.parse(localStorage.getItem('pm_cfg')||'{}');
   if(!c.token||!c.group){
-    toast('⚠️ Vendos Bot Token dhe Group ID në Settings!');
+    toast('Vendos Bot Token dhe Group ID ne Settings!');
     return;
   }
-
   const el = document.getElementById('topics-list');
-  el.innerHTML = `<div class="loading"><div class="spin"></div><br>Duke ngarkuar topics...</div>`;
-
+  el.innerHTML = '<div class="loading"><div class="spin"></div><br>Duke ngarkuar...</div>';
   try{
-    const url = `https://api.telegram.org/bot${c.token}/getForumTopics?chat_id=${c.group}&limit=100`;
-    const r = await fetch(url);
-    const data = await r.json();
-
-    if(!data.ok){
-      el.innerHTML = `<div class="empty"><div class="empty-icon">❌</div>${data.description||'Gabim API'}</div>`;
-      return;
+    const r = await fetch('https://api.telegram.org/bot'+c.token+'/getForumTopics?chat_id='+c.group+'&limit=100');
+    const d = await r.json();
+    if(d.ok && d.result && d.result.topics && d.result.topics.length){
+      const topics = d.result.topics;
+      let html = '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">'+topics.length+' topics u gjetën</div>';
+      topics.forEach(t=>{
+        html += '<div class="topic-item" onclick="addFromTopic(''+t.name+'','+t.message_thread_id+')">';
+        html += '<div><div class="topic-name">'+t.name+'</div>';
+        html += '<div class="topic-id">thread: '+t.message_thread_id+'</div></div>';
+        html += '<span style="color:var(--accent);font-size:18px">+</span></div>';
+      });
+      el.innerHTML = html;
+    } else {
+      showManualAccounts(el, d.description||'Topics nuk u gjetën');
     }
-
-    const topics = data.result?.topics || [];
-    if(!topics.length){
-      el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>Nuk ka topics</div>`;
-      return;
-    }
-
-    el.innerHTML = `
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">${topics.length} topics u gjetën</div>
-      ${topics.map(t=>`
-      <div class="topic-item" onclick="addFromTopic('${t.name}', ${t.message_thread_id})">
-        <div>
-          <div class="topic-name">${t.name}</div>
-          <div class="topic-id">thread_id: ${t.message_thread_id}</div>
-        </div>
-        <span style="color:var(--accent);font-size:18px">+</span>
-      </div>`).join('')}`;
-
   }catch(e){
-    el.innerHTML = `<div class="empty"><div class="empty-icon">❌</div>${e.message}</div>`;
+    showManualAccounts(el, e.message);
   }
+}
+
+function showManualAccounts(el, err){
+  const known = ['@samanthathomas98','@boho.bloom','@stella.rampant','@diva_maria98','@candygirlsamira','@mollyqn86e','@milenestone','@adelaida3445','@alisabarbismiter'];
+  const saved = JSON.parse(localStorage.getItem('pm_accounts')||'[]').map(a=>a.name);
+  const available = known.filter(k=>!saved.includes(k));
+  let html = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">';
+  html += '<div style="font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:4px">Shto manualisht</div>';
+  html += '<div style="font-size:11px;color:var(--muted)">'+err+'</div></div>';
+  if(available.length){
+    html += '<div style="font-size:12px;color:var(--accent);margin-bottom:8px">Accounts te njohura:</div>';
+    available.forEach(a=>{
+      html += '<div class="topic-item" onclick="addManual(''+a+'')">';
+      html += '<div><div class="topic-name">'+a+'</div>';
+      html += '<div class="topic-id">Kliko per te shtuar</div></div>';
+      html += '<span style="color:var(--accent);font-size:18px">+</span></div>';
+    });
+  }
+  el.innerHTML = html;
+}
+
+function addManual(name){
+  document.getElementById('inp-name').value = name;
+  document.getElementById('inp-type').value = 'tiktok';
+  showAddModal();
+  toast('Ploteso total video dhe shtyp Shto!');
 }
 
 function addFromTopic(name, threadId){
