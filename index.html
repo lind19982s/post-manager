@@ -260,12 +260,20 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,sa
 <!-- PAGE 6: SETTINGS -->
 <div class="page" id="p6">
   <div class="setup">
-    <div class="setup-t">Telegram Bot</div>
-    <div class="setup-s">Vendos te dhenat - perdoret per shkarkim + sync</div>
-    <div class="field"><div class="field-l">Bot Token</div><input id="cfg-tok" type="password" placeholder="8738753901:AAGJ..."></div>
-    <div class="field"><div class="field-l">Group Chat ID</div><input id="cfg-grp" placeholder="-1003950290594"></div>
-    <button class="btn btn-a" id="btn-save-cfg" style="width:100%;margin-bottom:8px">Ruaj Settings</button>
-    <button class="btn btn-gh" id="btn-test-cfg" style="width:100%">Testo Lidhjen</button>
+    <div class="setup-t">TikTok Studio Bot</div>
+    <div class="setup-s">Per accounts @username nga TikTok</div>
+    <div class="field"><div class="field-l">Bot Token</div><input id="cfg-tok" type="password" placeholder="8738753901:AAGJ..." value="8738753901:AAGJ9c50HCfybk6PhYG1mptnR97FSwWwI2I"></div>
+    <div class="field"><div class="field-l">Group Chat ID</div><input id="cfg-grp" placeholder="-1003950290594" value="-1003950290594"></div>
+  </div>
+  <div class="setup">
+    <div class="setup-t">American Studio PRO Bot</div>
+    <div class="setup-s">Per modelet AI te gjeneruara</div>
+    <div class="field"><div class="field-l">Bot Token</div><input id="cfg-tok2" type="password" placeholder="8788620142:AAFh..." value="8788620142:AAFhc7a4JywdHkQEXITFbAzPIE37L6MoglU"></div>
+    <div class="field"><div class="field-l">Group Chat ID</div><input id="cfg-grp2" placeholder="-1003883193003" value="-1003883193003"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button class="btn btn-a" id="btn-save-cfg" style="flex:1">Ruaj Settings</button>
+    <button class="btn btn-gh" id="btn-test-cfg" style="flex:1">Testo</button>
   </div>
 
   <div class="setup">
@@ -311,10 +319,10 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,sa
     <div class="modal-t">Shto Account</div>
     <div class="field"><div class="field-l">Username</div><input id="i-name" placeholder="@candygirlsamira"></div>
     <div class="field">
-      <div class="field-l">Lloji</div>
+      <div class="field-l">Lloji (percakton cilin grup Telegram)</div>
       <select id="i-type">
-        <option value="tiktok">TikTok Studio (video reale)</option>
-        <option value="studio">American Studio PRO (video AI)</option>
+        <option value="tiktok">TikTok Studio — @tiktokmystudio_bot</option>
+        <option value="studio">American Studio PRO — @AMERICAN_SINGLE_WOMEN_STUDIO_bot</option>
       </select>
     </div>
     <div class="field"><div class="field-l">Total video ne Telegram</div><input id="i-tot" type="number" placeholder="703"></div>
@@ -770,8 +778,10 @@ function resetAcc(i){
 // SETTINGS
 function renderSettingsPage(){
   var c=JSON.parse(localStorage.getItem('pmp_c')||'{}');
-  document.getElementById('cfg-tok').value=c.token||'';
-  document.getElementById('cfg-grp').value=c.group||'';
+  document.getElementById('cfg-tok').value=c.token||'8738753901:AAGJ9c50HCfybk6PhYG1mptnR97FSwWwI2I';
+  document.getElementById('cfg-grp').value=c.group||'-1003950290594';
+  document.getElementById('cfg-tok2').value=c.token2||'8788620142:AAFhc7a4JywdHkQEXITFbAzPIE37L6MoglU';
+  document.getElementById('cfg-grp2').value=c.group2||'-1003883193003';
   document.getElementById('cfg-target').value=TARGET;
   var el=document.getElementById('cfg-stats-el');
   if(!ACC.length){el.innerHTML='<div style="color:var(--mu);font-size:12px">Nuk ka accounts</div>';return;}
@@ -786,8 +796,10 @@ function renderSettingsPage(){
 document.getElementById('btn-save-cfg').addEventListener('click',function(){
   var tok=document.getElementById('cfg-tok').value.trim();
   var grp=document.getElementById('cfg-grp').value.trim();
-  localStorage.setItem('pmp_c',JSON.stringify({token:tok,group:grp}));
-  CFG={token:tok,group:grp};
+  var tok2=document.getElementById('cfg-tok2').value.trim();
+  var grp2=document.getElementById('cfg-grp2').value.trim();
+  CFG={token:tok,group:grp,token2:tok2,group2:grp2};
+  localStorage.setItem('pmp_c',JSON.stringify(CFG));
   showToast('Settings u ruajten!');
 });
 document.getElementById('btn-save-target').addEventListener('click',function(){
@@ -798,13 +810,21 @@ document.getElementById('btn-save-target').addEventListener('click',function(){
 });
 document.getElementById('btn-test-cfg').addEventListener('click',function(){
   var c=JSON.parse(localStorage.getItem('pmp_c')||'{}');
-  if(!c.token){showToast('Vendos Bot Token!');return;}
-  showToast('Duke testuar...');
-  fetch('https://api.telegram.org/bot'+c.token+'/getMe')
+  var tok=document.getElementById('cfg-tok').value.trim();
+  var tok2=document.getElementById('cfg-tok2').value.trim();
+  if(!tok){showToast('Vendos Bot Token!');return;}
+  showToast('Duke testuar te 2 bot-at...');
+  fetch('https://api.telegram.org/bot'+tok+'/getMe')
     .then(function(r){return r.json();})
     .then(function(d){
-      if(d.ok) showToast('Bot OK: @'+d.result.username);
-      else showToast('Error: '+d.description);
+      var msg1 = d.ok ? 'TikTok: @'+d.result.username : 'TikTok: ERROR';
+      if(!tok2){showToast(msg1);return;}
+      fetch('https://api.telegram.org/bot'+tok2+'/getMe')
+        .then(function(r2){return r2.json();})
+        .then(function(d2){
+          var msg2 = d2.ok ? ' | AI: @'+d2.result.username : ' | AI: ERROR';
+          showToast(msg1+msg2);
+        });
     }).catch(function(){showToast('Lidhja deshtoi!');});
 });
 document.getElementById('btn-reset').addEventListener('click',function(){
@@ -815,11 +835,45 @@ document.getElementById('btn-reset').addEventListener('click',function(){
 
 // TELEGRAM TOPICS
 document.getElementById('btn-topics').addEventListener('click',function(){
-  var c=JSON.parse(localStorage.getItem('pmp_c')||'{}');
-  if(!c.token||!c.group){showToast('Vendos Bot Token dhe Group ID ne Settings!');return;}
+  var c=JSON.parse(localStorage.getItem('pmp_c')||'{}')||{};
+  var tok=c.token||'8738753901:AAGJ9c50HCfybk6PhYG1mptnR97FSwWwI2I';
+  var grp=c.group||'-1003950290594';
+  var tok2=c.token2||'8788620142:AAFhc7a4JywdHkQEXITFbAzPIE37L6MoglU';
+  var grp2=c.group2||'-1003883193003';
   var el=document.getElementById('topics-el');
-  el.innerHTML='<div class="loading"><div class="spin"></div><br>Duke ngarkuar...</div>';
-  fetch('https://api.telegram.org/bot'+c.token+'/getForumTopics?chat_id='+c.group+'&limit=100')
+  el.innerHTML='<div class="loading"><div class="spin"></div><br>Duke ngarkuar te 2 grupet...</div>';
+  
+  var allTopics = [];
+  var done = 0;
+  
+  function checkDone(){
+    done++;
+    if(done===2) showAllTopics(el, allTopics);
+  }
+  
+  fetch('https://api.telegram.org/bot'+tok+'/getForumTopics?chat_id='+grp+'&limit=100')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok&&d.result&&d.result.topics){
+        d.result.topics.forEach(function(t){t._bot='tiktok';t._tok=tok;t._grp=grp;});
+        allTopics = allTopics.concat(d.result.topics);
+      }
+      checkDone();
+    }).catch(function(){checkDone();});
+  
+  fetch('https://api.telegram.org/bot'+tok2+'/getForumTopics?chat_id='+grp2+'&limit=100')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok&&d.result&&d.result.topics){
+        d.result.topics.forEach(function(t){t._bot='studio';t._tok=tok2;t._grp=grp2;});
+        allTopics = allTopics.concat(d.result.topics);
+      }
+      checkDone();
+    }).catch(function(){checkDone();});
+  
+  return;
+  // old code below (unreachable)
+  fetch('https://api.telegram.org/bot'+tok+'/getForumTopics?chat_id='+grp+'&limit=100')
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.ok&&d.result&&d.result.topics&&d.result.topics.length){
@@ -837,6 +891,34 @@ document.getElementById('btn-topics').addEventListener('click',function(){
     }).catch(function(e){showKnown(el,e.message);});
 });
 
+function showAllTopics(el, topics){
+  if(!topics.length){showKnown(el,'Topics nuk u gjeten ne asnje grup');return;}
+  var html='<div style="font-size:11px;color:var(--mu);margin-bottom:8px">'+topics.length+' topics u gjeten ne 2 grupet</div>';
+  
+  var tiktopics = topics.filter(function(t){return t._bot==='tiktok';});
+  var aitopics = topics.filter(function(t){return t._bot==='studio';});
+  
+  if(tiktopics.length){
+    html+='<div style="font-size:10px;color:#ff6680;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">TikTok Studio</div>';
+    tiktopics.forEach(function(t){
+      var sn=t.name.replace(/'/g,"\'");
+      html+='<div class="topic-row" onclick="addFromTopic(''+sn+'','+t.message_thread_id+','tiktok')">';
+      html+='<div><div class="topic-n">'+t.name+'</div><div class="topic-s">TikTok · thread: '+t.message_thread_id+'</div></div>';
+      html+='<div style="color:var(--ac);font-size:18px;font-weight:700">+</div></div>';
+    });
+  }
+  if(aitopics.length){
+    html+='<div style="font-size:10px;color:var(--ac);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px">American Studio PRO</div>';
+    aitopics.forEach(function(t){
+      var sn=t.name.replace(/'/g,"\'");
+      html+='<div class="topic-row" onclick="addFromTopic(''+sn+'','+t.message_thread_id+','studio')">';
+      html+='<div><div class="topic-n">'+t.name+'</div><div class="topic-s">AI Studio · thread: '+t.message_thread_id+'</div></div>';
+      html+='<div style="color:var(--ac);font-size:18px;font-weight:700">+</div></div>';
+    });
+  }
+  el.innerHTML=html;
+}
+
 function showKnown(el,err){
   var known=['@samanthathomas98','@boho.bloom','@stella.rampant','@diva_maria98','@candygirlsamira','@mollyqn86e','@milenestone','@adelaida3445','@alisabarbismiter'];
   var saved=ACC.map(function(a){return a.name;});
@@ -851,9 +933,9 @@ function showKnown(el,err){
   el.innerHTML=html;
 }
 
-function addFromTopic(name,tid){
+function addFromTopic(name,tid,type){
   document.getElementById('i-name').value=name;
-  document.getElementById('i-type').value='tiktok';
+  document.getElementById('i-type').value=type||'tiktok';
   document.getElementById('c-ig').checked=true;
   document.getElementById('c-sc').checked=false;
   document.getElementById('c-fb').checked=false;
@@ -863,7 +945,19 @@ function addFromTopic(name,tid){
   showToast('Ploteso total video dhe shtyp Shto!');
 }
 
-// INIT
+// INIT - Pre-fill default config if empty
+(function(){
+  var c = JSON.parse(localStorage.getItem('pmp_c')||'{}');
+  if(!c.token){
+    c.token='8738753901:AAGJ9c50HCfybk6PhYG1mptnR97FSwWwI2I';
+    c.group='-1003950290594';
+    c.token2='8788620142:AAFhc7a4JywdHkQEXITFbAzPIE37L6MoglU';
+    c.group2='-1003883193003';
+    localStorage.setItem('pmp_c',JSON.stringify(c));
+    CFG=c;
+  }
+})();
+
 var days=['E diel','E hene','E marte','E merkure','E enjte','E premte','E shtune'];
 var nd=new Date();
 document.getElementById('hdr-d').textContent=days[nd.getDay()]+' '+nd.getDate()+'/'+(nd.getMonth()+1)+'/'+nd.getFullYear();
