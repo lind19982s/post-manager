@@ -870,25 +870,6 @@ document.getElementById('btn-topics').addEventListener('click',function(){
       }
       checkDone();
     }).catch(function(){checkDone();});
-  
-  return;
-  // old code below (unreachable)
-  fetch('https://api.telegram.org/bot'+tok+'/getForumTopics?chat_id='+grp+'&limit=100')
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d.ok&&d.result&&d.result.topics&&d.result.topics.length){
-        var html='<div style="font-size:11px;color:var(--mu);margin-bottom:8px">'+d.result.topics.length+' topics u gjeten</div>';
-        d.result.topics.forEach(function(t){
-          var sn=t.name.replace(/'/g,"\\'");
-          html+='<div class="topic-row" onclick="addFromTopic(\''+sn+'\','+t.message_thread_id+')">';
-          html+='<div><div class="topic-n">'+t.name+'</div><div class="topic-s">thread: '+t.message_thread_id+'</div></div>';
-          html+='<div style="color:var(--ac);font-size:18px;font-weight:700">+</div></div>';
-        });
-        el.innerHTML=html;
-      } else {
-        showKnown(el, d.description||'Topics nuk u gjeten');
-      }
-    }).catch(function(e){showKnown(el,e.message);});
 });
 
 function showAllTopics(el, topics){
