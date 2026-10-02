@@ -207,6 +207,17 @@ input[type=range]{flex:1;accent-color:#c084fc}
           </div>
         </div>
         <p class="hint hide" id="formatNote">Përmasat ndjekin videon që ngarkon.</p>
+        <div id="hqBox" class="hide" style="margin-top:14px">
+          <p class="lbl">Cilësia e gjenerimit</p>
+          <div class="seg" id="segSpeed">
+            <button data-v="fast">E shpejtë · 4 hapa</button>
+            <button data-v="max" class="on">Maksimale · 20 hapa</button>
+          </div>
+          <p class="hint" style="margin:6px 0 0">Maksimale jep duar dhe lëvizje shumë më të pastra, por zgjat rreth 4 herë më shumë.</p>
+        </div>
+        <div id="smoothBox" class="hide" style="margin-top:14px">
+          <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="smooth" checked style="width:18px;height:18px;accent-color:#c084fc"><span><b>Video e lëmuar · 32fps</b> <span class="hint">(interpolim RIFE, pa ngecje)</span></span></label>
+        </div>
         <div id="durBox" class="hide" style="margin-top:14px">
           <p class="lbl">Kohëzgjatja</p>
           <div class="range"><input type="range" id="dur" min="2" max="8" step="1" value="5"><span class="rv" id="durV">5 s</span></div>
@@ -280,7 +291,9 @@ const SIZES = {
 const PROFILES = [
   { prefix: "02_", title: "Flet & lëviz", sub: "Wan 2.2 S2V", icon: "mic", badge: "Më realisti",
     desc: "Foto + zë. Personazhi flet me lip-sync dhe lëviz sipas promptit.",
-    size: { table: "wan", types: ["WanSoundImageToVideo"] } },
+    size: { table: "wan", types: ["WanSoundImageToVideo"] },
+    hq: { lora: /lightx2v|lightning|4steps/i, fast: { steps: 4, cfg: 1 }, max: { steps: 20, cfg: 6 } },
+    smooth: { type: "CreateVideo", input: "images", fps: "fps" } },
   { prefix: "01_", title: "Kopjo lëvizjen", sub: "Wan 2.2 Animate", icon: "film",
     desc: "Foto + video. Personazhi bën lëvizjet dhe shprehjet e videos.", size: null },
   { prefix: "03_", title: "Video të gjata", sub: "InfiniteTalk", icon: "wave",
@@ -292,9 +305,9 @@ const PROFILES = [
 ];
 const CHIPS = [
   ["Selfie në makinë", "A young woman talking to the camera in a parked car, natural head movement, soft daylight through the windows, handheld selfie video, realistic"],
-  ["Në shtëpi", "A woman talking to the camera at home, cozy living room, warm evening light, natural gestures, casual handheld phone video, realistic"],
+  ["Në shtëpi", "A woman talking to the camera at home, cozy living room, warm evening light, hands relaxed and mostly still, casual handheld phone video, realistic"],
   ["Perëndim dielli", "A woman talking to the camera outdoors at golden hour, gentle breeze moving her hair, soft warm sunlight, handheld selfie video, realistic"],
-  ["Kafene", "A woman talking to the camera in a cafe, relaxed smile, light hand gestures, shallow depth of field, natural indoor light, realistic"],
+  ["Kafene", "A woman talking to the camera in a cafe, relaxed smile, hands resting calmly, shallow depth of field, natural indoor light, realistic"],
   ["Studio podcast", "A woman speaking into a podcast microphone, looking at the camera, soft key light, dark background, steady camera, realistic"]
 ];
 
@@ -302,6 +315,7 @@ const S = {
   app: null, entries: [], files: [], profile: null, file: null, info: null, busy: false,
   uploads: { image: null, audio: null, video: null },
   format: store.get("format", "9:16"), quality: store.get("quality", "std"), dur: store.get("dur", 5),
+  speed: store.get("speed", "max"), smooth: store.get("smooth", true), wf: null,
   clientId: uid(), run: null
 };
 
@@ -407,6 +421,18 @@ function analyze(profile) {
       if (ws.length && hs.length) info.sizes.push({ ...e, ws, hs });
     }
   }
+  if (profile && profile.hq) {
+    info.hq = {
+      loras: on.filter(e => e.n.type === "LoraLoaderModelOnly" && profile.hq.lora.test(String((W(e.n, "lora_name") || {}).value || ""))),
+      steps: on.filter(e => /primitiveint/i.test(e.n.type) && /^steps$/i.test((e.n.title || "").trim())).map(e => ({ ...e, w: W(e.n, "value") })).filter(e => e.w),
+      cfg: on.filter(e => /primitivefloat/i.test(e.n.type) && /^cfg$/i.test((e.n.title || "").trim())).map(e => ({ ...e, w: W(e.n, "value") })).filter(e => e.w)
+    };
+    if (!info.hq.loras.length || !info.hq.steps.length) info.hq = null;
+  }
+  if (profile && profile.smooth) {
+    info.smooth = on.filter(e => e.n.type === profile.smooth.type && (e.n.inputs || []).some(i => i.name === profile.smooth.input && i.link != null) && W(e.n, profile.smooth.fps));
+    if (!info.smooth.length) info.smooth = null;
+  }
   if (profile && profile.duration) {
     const e = on.find(e => /primitiveint/i.test(e.n.type) && /^length$/i.test((e.n.title || "").trim()));
     const t = e && resolveTarget(e, "value");
@@ -475,6 +501,7 @@ async function selectMode(p, file, btn) {
     const r = await fetch("/api/userdata/" + encodeURIComponent("workflows/" + file));
     if (!r.ok) throw new Error("Workflow-i nuk u lexua (" + r.status + ")");
     const wf = await r.json();
+    S.wf = JSON.stringify(wf);
     await S.app.loadGraphData(wf);
     await sleep(500);
     S.profile = p; S.file = file; S.info = analyze(p);
@@ -557,6 +584,9 @@ function renderSettings() {
   $("#formatNote").classList.toggle("hide", hasSize);
   $("#formatNote").textContent = S.info.videos.length ? "Përmasat ndjekin videon që ngarkon." : "Përmasat ndjekin workflow-in.";
   $("#durBox").classList.toggle("hide", !hasDur);
+  $("#hqBox").classList.toggle("hide", !S.info.hq);
+  $("#smoothBox").classList.toggle("hide", !S.info.smooth);
+  syncSeg("#segSpeed", S.speed); $("#smooth").checked = S.smooth;
   if (hasDur) { $("#dur").value = S.dur; $("#durV").textContent = S.dur + " s"; }
   syncSeg("#segFormat", S.format); syncSeg("#segQuality", S.quality);
   $("#segQuality").style.opacity = S.format === "orig" ? .4 : 1;
@@ -564,6 +594,8 @@ function renderSettings() {
 function syncSeg(sel, v) { document.querySelectorAll(sel + " button").forEach(b => b.classList.toggle("on", b.dataset.v === v)); }
 document.querySelectorAll("#segFormat button").forEach(b => b.onclick = () => { S.format = b.dataset.v; store.set("format", S.format); renderSettings(); });
 document.querySelectorAll("#segQuality button").forEach(b => b.onclick = () => { S.quality = b.dataset.v; store.set("quality", S.quality); renderSettings(); });
+document.querySelectorAll("#segSpeed button").forEach(b => b.onclick = () => { S.speed = b.dataset.v; store.set("speed", S.speed); syncSeg("#segSpeed", S.speed); });
+$("#smooth").onchange = e => { S.smooth = e.target.checked; store.set("smooth", S.smooth); };
 $("#dur").oninput = e => { S.dur = +e.target.value; $("#durV").textContent = S.dur + " s"; store.set("dur", S.dur); };
 $("#prompt").oninput = () => { S.file && store.set("prompt:" + S.file, $("#prompt").value); validate(); };
 $("#chips").innerHTML = CHIPS.map((c, i) => `<button class="chip" data-i="${i}">${c[0]}</button>`).join("");
@@ -599,10 +631,31 @@ function applyInputs() {
     const [w, h] = SIZES[S.profile.size.table][S.format][S.quality];
     for (const e of I.sizes) { e.ws.forEach(x => setW(e, x, w)); e.hs.forEach(x => setW(e, x, h)); }
   }
+  if (I.hq) {
+    const v = S.profile.hq[S.speed === "fast" ? "fast" : "max"];
+    for (const e of I.hq.loras) e.n.mode = S.speed === "fast" ? 0 : 4;
+    for (const e of I.hq.steps) setW(e, e.w, v.steps);
+    for (const e of I.hq.cfg) setW(e, e.w, v.cfg);
+  }
+  if (I.smooth && S.smooth) for (const e of I.smooth) insertRife(e);
   if (I.length && S.profile && S.profile.duration) {
     const fps = S.profile.duration.fps;
     setW(I.length, I.length.w, 8 * Math.round(S.dur * fps / 8) + 1);
   }
+}
+// Puts a RIFE frame-interpolation node in front of the video writer and doubles its fps.
+function insertRife(e) {
+  const LG = $("#engine").contentWindow.LiteGraph, n = e.n, g = n.graph || e.g, cfg = S.profile.smooth;
+  const slot = n.inputs.findIndex(i => i.name === cfg.input), link = getLink(g, n.inputs[slot].link);
+  const src = link && g.getNodeById(link.origin_id);
+  const rife = LG && src && LG.createNode("RIFE VFI");
+  if (!rife) { toast("Interpolimi RIFE nuk u gjet; videoja del me 16fps.", "info"); return; }
+  g.add(rife);
+  const fi = rife.inputs.findIndex(i => i.name === "frames");
+  src.connect(link.origin_slot, rife, fi < 0 ? 0 : fi);
+  rife.connect(0, n, slot);
+  const m = W(rife, "multiplier"); if (m) m.value = 2;
+  const fw = W(n, cfg.fps); setW(e, fw, Math.round(Number(fw.value || 16) * 2));
 }
 function errText(j) {
   if (!j) return "Gabim i panjohur.";
@@ -618,6 +671,7 @@ async function generate() {
   validate(); if ($("#goBtn").disabled) return;
   $("#goBtn").disabled = true;
   try {
+    if (S.wf) { await S.app.loadGraphData(JSON.parse(S.wf)); await sleep(300); S.info = analyze(S.profile); }
     applyInputs();
     const p = await S.app.graphToPrompt();
     const r = await fetch("/api/prompt", {
