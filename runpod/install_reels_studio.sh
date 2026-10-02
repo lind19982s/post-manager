@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# One-file installer: unpacks the Wan Animate workflow next to itself, then runs the studio setup.
+# One-file installer: unpacks the workflow and setup script next to itself, then runs the setup.
 HERE="$(cd "$(dirname "$0")" && pwd)"
-sed -n '/^__WORKFLOW_B64__$/,$p' "$0" | tail -n +2 | base64 -d | gunzip > "$HERE/wan_animate_runpod.json"
-sed -n '2,/^__SETUP_END__$/p' "$0" | sed '1,/^__SETUP_START__$/d;$d' > "$HERE/setup_reels_studio.sh"
+exec 9>/tmp/reels_install.lock
+flock -n 9 || { echo "An install is already running. Watch it with: tail -f $HERE/install_log.txt"; exit 1; }
+# write to temp files and rename, so a script that is still being read is never overwritten in place
+sed -n '/^__WORKFLOW_B64__$/,$p' "$0" | tail -n +2 | base64 -d | gunzip > "$HERE/wan_animate_runpod.json.tmp" && mv -f "$HERE/wan_animate_runpod.json.tmp" "$HERE/wan_animate_runpod.json"
+sed -n '2,/^__SETUP_END__$/p' "$0" | sed '1,/^__SETUP_START__$/d;$d' > "$HERE/setup_reels_studio.sh.tmp" && mv -f "$HERE/setup_reels_studio.sh.tmp" "$HERE/setup_reels_studio.sh"
 bash "$HERE/setup_reels_studio.sh" 2>&1 | tee "$HERE/install_log.txt"
 echo; echo "Log saved to $HERE/install_log.txt"
 exit 0
