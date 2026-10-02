@@ -12,7 +12,13 @@ routes = PromptServer.instance.routes
 
 @routes.get("/reels")
 async def reels_page(request):
-    return web.FileResponse(PAGE, headers={"Cache-Control": "no-store"})
+    # A plain in-memory response; streamed file responses can be rejected by the RunPod proxy.
+    with open(PAGE, encoding="utf-8") as f:
+        html = f.read()
+    return web.Response(text=html, content_type="text/html", headers={"Cache-Control": "no-store"})
+
+
+routes.get("/reels/")(reels_page)
 
 
 @routes.get("/reels/api/outputs")
