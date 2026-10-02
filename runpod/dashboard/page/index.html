@@ -735,10 +735,21 @@ $("#againBtn").onclick = generate;
 $("#stopBtn").onclick = async () => { try { await fetch("/api/interrupt", { method: "POST" }); } catch {} };
 
 /* ---------- gallery & queue ---------- */
+async function outputsFromHistory() {
+  const r = await fetch("/api/history?max_items=64"); if (!r.ok) return [];
+  const items = [];
+  for (const h of Object.values(await r.json())) {
+    const t = ((h.status && h.status.messages) || []).map(m => m[1] && m[1].timestamp).filter(Boolean).pop() || 0;
+    for (const o of Object.values(h.outputs || {})) for (const v of Object.values(o)) if (Array.isArray(v)) for (const f of v)
+      if (f && f.filename && f.type === "output" && isVideo(f.filename)) items.push({ filename: f.filename, subfolder: f.subfolder || "", mtime: t / 1000 });
+  }
+  return items.sort((a, b) => b.mtime - a.mtime);
+}
 async function loadGallery() {
   try {
-    const r = await fetch("/reels/api/outputs"); if (!r.ok) return;
-    const items = await r.json(), box = $("#thumbs");
+    // /reels/api/outputs comes from the ComfyUI extension; the page also works without it
+    const r = await fetch("/reels/api/outputs");
+    const items = r.ok ? await r.json() : await outputsFromHistory(), box = $("#thumbs");
     if (!items.length) { box.innerHTML = '<p class="hint">Ende asnjë video.</p>'; return; }
     box.innerHTML = "";
     for (const it of items.slice(0, 40)) {
