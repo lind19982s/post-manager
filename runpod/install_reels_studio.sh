@@ -78,7 +78,8 @@ for r in "${REPOS[@]}"; do
 done
 
 log "Python packages"
-"$PY" -m pip install -q -U "huggingface_hub[hf_transfer]" onnxruntime-gpu ultralytics
+# diffusers and tokenizers require huggingface_hub < 2.0
+"$PY" -m pip install -q "huggingface_hub>=1.23,<2.0" onnxruntime-gpu ultralytics
 "$PY" -m pip install -q sageattention || true
 SAGE=1; "$PY" -c "import sageattention" 2>/dev/null || { SAGE=0; warn "sageattention unavailable; workflows will be switched to sdpa"; }
 
@@ -106,11 +107,23 @@ for name, files, keys, prefer in wanted:
     f = pick(files, keys, prefer)
     if f: shutil.copy(f, os.path.join(wfdir, name + ".json")); print(f"{name}  <-  {os.path.basename(f)}")
     else: print(f"[!] no workflow found for {name}; it will be skipped")
+# example workflows saved on Windows use backslashes in model paths
+EXT = (".safetensors", ".onnx", ".pt", ".pth", ".gguf", ".bin", ".ckpt")
+for f in glob.glob(os.path.join(wfdir, "*.json")):
+    w = json.load(open(f, encoding="utf-8")); changed = False
+    for n in list(w.get("nodes", [])) + [n for sg in (w.get("definitions") or {}).get("subgraphs", []) for n in sg.get("nodes", [])]:
+        wv = n.get("widgets_values")
+        if isinstance(wv, list):
+            for i, v in enumerate(wv):
+                if isinstance(v, str) and "\\" in v and v.lower().endswith(EXT):
+                    wv[i] = v.replace("\\", "/"); changed = True
+    if changed:
+        json.dump(w, open(f, "w", encoding="utf-8"), ensure_ascii=False); print("fixed Windows paths in", os.path.basename(f))
 PYEOF
 [ "$SAGE" = 0 ] && sed -i 's/"sageattn"/"sdpa"/g' "$WFDIR"/*.json
 
 log "Models: downloading everything the workflows reference"
-export HF_HUB_ENABLE_HF_TRANSFER=1
+export HF_XET_HIGH_PERFORMANCE=1
 COMFY="$COMFY" WFDIR="$WFDIR" "$PY" - <<'PYEOF'
 import glob, json, os, re, shutil, urllib.request
 from huggingface_hub import HfApi, hf_hub_download
