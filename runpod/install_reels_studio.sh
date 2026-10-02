@@ -25,7 +25,7 @@ if [ -z "$COMFY" ]; then
 fi
 [ -n "$COMFY" ] || { echo "ComfyUI not found. Run with COMFY_DIR=/path/to/ComfyUI"; exit 1; }
 PY=python3
-for p in "$COMFY/.venv/bin/python" "$COMFY/venv/bin/python" /workspace/venv/bin/python; do
+for p in "${VIRTUAL_ENV:-/nonexistent}/bin/python" "$COMFY"/.venv*/bin/python "$COMFY"/../.venv*/bin/python "$COMFY/venv/bin/python" /workspace/venv/bin/python; do
   [ -x "$p" ] && PY="$p" && break
 done
 WFDIR="$COMFY/user/default/workflows"; mkdir -p "$WFDIR"
@@ -34,7 +34,11 @@ FREE_GB=$(df -BG --output=avail "$COMFY" | tail -1 | tr -dc '0-9')
 [ "${FREE_GB:-0}" -lt 180 ] && warn "Only ${FREE_GB}GB free; the full studio needs about 150GB. Use a 250GB volume or SKIP_LTX=1."
 
 log "Updating ComfyUI core (needed for native Wan 2.2 S2V and LTX-2 nodes)"
-if [ -d "$COMFY/.git" ]; then git -C "$COMFY" pull -q || warn "ComfyUI git pull failed"; fi
+if [ -d "$COMFY/.git" ]; then
+  git -C "$COMFY" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1 || {
+    git -C "$COMFY" fetch -q origin && git -C "$COMFY" branch -q --set-upstream-to=origin/master; }
+  git -C "$COMFY" pull -q --ff-only || warn "ComfyUI git pull failed"
+fi
 "$PY" -m pip install -q -U -r "$COMFY/requirements.txt" || warn "ComfyUI requirements update failed"
 
 log "Custom nodes"
