@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reels Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b10; --bg2:#12121a; --card:#16161f; --card2:#1c1c27; --line:#262633; --line2:#33334a;
+  --text:#f2f2f7; --muted:#9a9ab0; --dim:#6b6b82;
+  --accent:#8b5cf6; --accent2:#ec4899; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444;
+  --grad:linear-gradient(135deg,#8b5cf6 0%,#d946ef 55%,#ec4899 100%);
+  --r:16px; --r2:12px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background:
+  radial-gradient(900px 500px at 85% -10%,rgba(139,92,246,.18),transparent 60%),
+  radial-gradient(700px 400px at -10% 10%,rgba(236,72,153,.10),transparent 60%),var(--bg)}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 60px}
+
+/* header */
+header{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:rgba(11,11,16,.72);border-bottom:1px solid var(--line)}
+.hbar{max-width:1240px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:18px}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--grad);display:grid;place-items:center;box-shadow:0 6px 20px rgba(217,70,239,.35)}
+.logo i svg{width:16px;height:16px}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--muted);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.dot.ok{background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.dot.err{background:var(--err);box-shadow:0 0 0 3px rgba(239,68,68,.15)}
+.ghost{padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);text-decoration:none;font-size:13px;cursor:pointer}
+.ghost:hover{color:var(--text);border-color:var(--line2)}
+
+/* layout */
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:22px;margin-top:26px;align-items:start}
+@media (max-width:960px){.grid{grid-template-columns:1fr}}
+.panel{background:rgba(22,22,31,.78);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.step{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-weight:700;font-size:15px}
+.step b{width:24px;height:24px;border-radius:8px;background:var(--card2);border:1px solid var(--line2);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.section+.section{margin-top:24px}
+.hint{color:var(--dim);font-size:13px}
+
+/* mode cards */
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.modes{grid-template-columns:1fr}}
+.mode{position:relative;text-align:left;padding:14px;border-radius:var(--r2);background:var(--card);border:1px solid var(--line);cursor:pointer;transition:border-color .15s,transform .15s,background .15s}
+.mode:hover{border-color:var(--line2);transform:translateY(-1px)}
+.mode.on{border-color:transparent;background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--grad) border-box;border:1px solid transparent}
+.mode:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.mhead{display:flex;align-items:center;gap:10px}
+.mico{width:34px;height:34px;border-radius:10px;background:var(--bg2);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
+.mode.on .mico{background:var(--grad);border-color:transparent}
+.mico svg{width:17px;height:17px}
+.mtitle{font-weight:700;line-height:1.2}
+.msub{font-size:12px;color:var(--dim)}
+.mdesc{margin:10px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);color:var(--muted)}
+.badge{position:absolute;top:10px;right:10px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(236,72,153,.14);color:#f9a8d4;border:1px solid rgba(236,72,153,.3)}
+
+/* drop zones */
+.drops{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.drop{position:relative;min-height:150px;border-radius:var(--r2);border:1.5px dashed var(--line2);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px;cursor:pointer;text-align:center;overflow:hidden;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--card2)}
+.drop svg{width:26px;height:26px;color:var(--muted)}
+.drop .dl{font-weight:600}
+.drop .ds{font-size:12px;color:var(--dim)}
+.drop.has{border-style:solid;border-color:var(--line2);padding:0;justify-content:flex-end}
+.drop.has .ph{display:none}
+.drop img,.drop video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.drop audio{width:calc(100% - 24px);margin:0 12px 46px;position:relative;z-index:1}
+.drop .fbar{position:relative;z-index:2;width:100%;display:flex;align-items:center;gap:8px;padding:9px 12px;background:linear-gradient(transparent,rgba(0,0,0,.82));font-size:12px}
+.drop .fname{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.drop .st{font-size:11px;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.12)}
+.drop .st.ok{background:rgba(34,197,94,.2);color:#86efac}
+.drop .st.err{background:rgba(239,68,68,.2);color:#fca5a5}
+.drop input{display:none}
+.drop.audio.has{background:var(--card2)}
+.drop.has{min-height:176px}
+.drop.audio.has audio{position:absolute;left:12px;right:12px;bottom:44px;width:auto;margin:0}
+.drop.audio.has .aico{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:12px;background:var(--grad);display:grid;place-items:center}
+.drop.audio.has .aico svg{color:#fff;width:20px;height:20px}
+
+/* prompt */
+textarea{width:100%;min-height:112px;resize:vertical;padding:14px;border-radius:var(--r2);background:var(--card);border:1px solid var(--line);outline:none;line-height:1.5}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{padding:6px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12.5px;color:var(--muted);cursor:pointer}
+.chip:hover{color:var(--text);border-color:var(--line2)}
+
+/* settings */
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;padding:4px;border-radius:12px;background:var(--card);border:1px solid var(--line);gap:4px;flex-wrap:wrap}
+.seg button{padding:7px 12px;border-radius:9px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600}
+.seg button.on{background:var(--card2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line2)}
+.lbl{font-size:12px;color:var(--dim);margin:0 0 6px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.range{display:flex;align-items:center;gap:12px;width:100%}
+input[type=range]{flex:1;accent-color:#c084fc}
+.rv{min-width:52px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+
+/* generate */
+.go{margin-top:24px;display:flex;gap:10px}
+.btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 18px;border-radius:14px;border:0;background:var(--grad);color:#fff;font-weight:800;font-size:16px;letter-spacing:-.01em;cursor:pointer;box-shadow:0 10px 30px rgba(217,70,239,.28);transition:transform .12s,filter .12s}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn svg{width:18px;height:18px}
+.stop{padding:0 18px;border-radius:14px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:#fca5a5;font-weight:700;cursor:pointer}
+.need{margin-top:10px;font-size:13px;color:var(--warn);min-height:20px}
+
+/* result */
+.stage{position:sticky;top:84px}
+.screen{position:relative;border-radius:var(--r);overflow:hidden;background:#07070b;border:1px solid var(--line);aspect-ratio:9/16;max-height:72vh;margin:0 auto;display:grid;place-items:center}
+.screen video{width:100%;height:100%;object-fit:contain;background:#000}
+.empty{text-align:center;padding:30px;color:var(--dim)}
+.empty svg{width:42px;height:42px;opacity:.6;margin-bottom:8px}
+.prog{position:absolute;inset:auto 0 0 0;padding:18px;background:linear-gradient(transparent,rgba(0,0,0,.9))}
+.ptop{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;gap:10px}
+.ptop span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:8px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--grad);border-radius:999px;transition:width .4s}
+.shimmer{position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.04) 50%,transparent 70%);background-size:200% 100%;animation:sh 1.6s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.actions{display:flex;gap:10px;margin-top:12px;justify-content:center}
+.actions a,.actions button{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);text-decoration:none;font-weight:600;font-size:13px;cursor:pointer}
+.actions svg{width:16px;height:16px}
+
+/* gallery */
+.gal{margin-top:34px}
+.ghead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ghead h2{margin:0;font-size:18px;letter-spacing:-.01em}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.thumb{position:relative;border-radius:12px;overflow:hidden;background:#07070b;border:1px solid var(--line);aspect-ratio:9/16;cursor:pointer}
+.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .tm{position:absolute;left:0;right:0;bottom:0;padding:8px 10px;font-size:11px;color:#ddd;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.thumb:hover{border-color:var(--line2)}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;max-width:min(680px,calc(100% - 32px));padding:13px 16px;border-radius:14px;background:#2a1215;border:1px solid rgba(239,68,68,.45);color:#fecaca;font-size:13.5px;box-shadow:0 20px 50px rgba(0,0,0,.5);transition:.25s;z-index:50;white-space:pre-wrap}
+.toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.toast.info{background:#121a2a;border-color:rgba(139,92,246,.45);color:#ddd6fe}
+#engine{position:fixed;left:-20000px;top:0;width:1280px;height:800px;border:0;opacity:0;pointer-events:none}
+.hide{display:none!important}
+.skel{height:120px;border-radius:12px;background:var(--card);position:relative;overflow:hidden}
+.foot{margin-top:40px;text-align:center;color:var(--dim);font-size:12px}
+.logo,.pill,.ghost{white-space:nowrap}
+@media (max-width:960px){.stage{position:static}.screen{max-width:420px}}
+@media (max-width:600px){
+  .hbar{padding:12px 16px;gap:8px}.wrap{padding:0 16px 48px}
+  #queuePill{display:none}.logo{font-size:16px}.logo i{width:26px;height:26px}
+  .pill,.ghost{padding:6px 10px;font-size:12px}.panel{padding:16px}
+  .grid{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5v13l11-6.5z"/></svg></i>Reels Studio</div>
+    <div class="spacer"></div>
+    <span class="pill" id="queuePill" title="Punët në radhë"><span>Radha: <b id="qn">0</b></span></span>
+    <span class="pill" id="enginePill"><span class="dot" id="engineDot"></span><span id="engineTxt">Duke nisur motorin…</span></span>
+    <a class="ghost" href="/" target="_blank" rel="noopener">ComfyUI ↗</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <main class="panel">
+      <section class="section">
+        <div class="step"><b>1</b>Zgjidh modalitetin</div>
+        <div class="modes" id="modes"><div class="skel"><div class="shimmer"></div></div><div class="skel"><div class="shimmer"></div></div></div>
+      </section>
+
+      <section class="section" id="secInputs">
+        <div class="step"><b>2</b>Ngarko materialet</div>
+        <div class="drops" id="drops"></div>
+        <p class="hint" id="inputsHint" style="margin:10px 0 0"></p>
+      </section>
+
+      <section class="section" id="secPrompt">
+        <div class="step"><b>3</b>Përshkruaj skenën</div>
+        <textarea id="prompt" placeholder="P.sh. A woman talking to the camera in a parked car, natural head movement, soft daylight, handheld selfie video. Nëse e lë bosh, përdoret prompti i workflow-it."></textarea>
+        <div class="chips" id="chips"></div>
+        <p class="hint" style="margin:8px 0 0">Prompti funksionon më mirë në anglisht.</p>
+      </section>
+
+      <section class="section" id="secSettings">
+        <div class="step"><b>4</b>Formati</div>
+        <div id="formatBox">
+          <p class="lbl">Përmasat</p>
+          <div class="seg" id="segFormat">
+            <button data-v="9:16" class="on">9:16 Reels</button>
+            <button data-v="1:1">1:1</button>
+            <button data-v="16:9">16:9</button>
+            <button data-v="orig">Si në workflow</button>
+          </div>
+          <p class="lbl" style="margin-top:14px">Cilësia</p>
+          <div class="seg" id="segQuality">
+            <button data-v="std" class="on">Standard · më shpejt</button>
+            <button data-v="hd">HD 720p</button>
+          </div>
+        </div>
+        <p class="hint hide" id="formatNote">Përmasat ndjekin videon që ngarkon.</p>
+        <div id="durBox" class="hide" style="margin-top:14px">
+          <p class="lbl">Kohëzgjatja</p>
+          <div class="range"><input type="range" id="dur" min="2" max="8" step="1" value="5"><span class="rv" id="durV">5 s</span></div>
+        </div>
+      </section>
+
+      <div class="go">
+        <button class="btn" id="goBtn" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.6L19.5 9.5l-5.7 1.9L12 17l-1.8-5.6L4.5 9.5l5.7-1.9z"/><path d="M19 15l.9 2.6 2.6.9-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9z"/></svg><span id="goTxt">Gjenero videon</span></button>
+        <button class="stop hide" id="stopBtn">Ndalo</button>
+      </div>
+      <div class="need" id="need"></div>
+    </main>
+
+    <aside class="stage">
+      <div class="screen" id="screen">
+        <div class="empty" id="emptyState">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2.5" width="14" height="19" rx="3"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/></svg>
+          <div style="font-weight:600;color:var(--muted)">Videoja jote do të shfaqet këtu</div>
+          <div class="hint">Zgjidh modalitetin, ngarko foton dhe kliko “Gjenero”.</div>
+        </div>
+        <video id="player" class="hide" controls playsinline loop></video>
+        <div class="prog hide" id="prog">
+          <div class="ptop"><span id="pStatus">Duke filluar…</span><span id="pTime">0:00</span></div>
+          <div class="bar"><i id="pBar"></i></div>
+        </div>
+      </div>
+      <div class="actions hide" id="actions">
+        <a id="dlBtn" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Shkarko</a>
+        <button id="againBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>Gjenero përsëri</button>
+      </div>
+    </aside>
+  </div>
+
+  <section class="gal">
+    <div class="ghead"><h2>Krijimet e fundit</h2><button class="ghost" id="refreshGal">Rifresko</button></div>
+    <div class="thumbs" id="thumbs"><p class="hint">Ende asnjë video.</p></div>
+  </section>
+  <p class="foot">Kujtesë: kur poston, aktivizo etiketën “AI info / AI-generated” në platformë.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+<iframe id="engine" src="/" aria-hidden="true" tabindex="-1"></iframe>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("reels:" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("reels:" + k, JSON.stringify(v)); } catch {} }
+};
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+
+const ICONS = {
+  film: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M17 9h4M3 15h4M17 15h4"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  wave: '<path d="M3 12h1M7 8v8M11 4v16M15 7v10M19 10v4"/>',
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  flow: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a4 4 0 0 1 4 4v5.5"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+  audio: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  video: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4V8z"/>'
+};
+const svg = (k, fill) => `<svg viewBox="0 0 24 24" fill="${fill ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>`;
+
+const SIZES = {
+  wan: { "9:16": { std: [480, 832], hd: [720, 1280] }, "1:1": { std: [640, 640], hd: [960, 960] }, "16:9": { std: [832, 480], hd: [1280, 720] } },
+  ltx: { "9:16": { std: [576, 1024], hd: [720, 1280] }, "1:1": { std: [768, 768], hd: [1024, 1024] }, "16:9": { std: [1024, 576], hd: [1280, 720] } }
+};
+const PROFILES = [
+  { prefix: "02_", title: "Flet & lëviz", sub: "Wan 2.2 S2V", icon: "mic", badge: "Më realisti",
+    desc: "Foto + zë. Personazhi flet me lip-sync dhe lëviz sipas promptit.",
+    size: { table: "wan", types: ["WanSoundImageToVideo"] } },
+  { prefix: "01_", title: "Kopjo lëvizjen", sub: "Wan 2.2 Animate", icon: "film",
+    desc: "Foto + video. Personazhi bën lëvizjet dhe shprehjet e videos.", size: null },
+  { prefix: "03_", title: "Video të gjata", sub: "InfiniteTalk", icon: "wave",
+    desc: "Foto + audio e gjatë. Për monologe mbi 30 sekonda.",
+    size: { table: "wan", types: ["ImageResizeKJv2", "ImageResizeKJ", "WanVideoImageToVideoMultiTalk", "WanVideoEmptyEmbeds"] } },
+  { prefix: "04_", title: "I shpejtë me zë", sub: "LTX-2", icon: "bolt",
+    desc: "Foto + prompt. Gjeneron videon dhe zërin vetë, shumë shpejt.",
+    size: { table: "ltx", types: ["ResizeImageMaskNode"] }, duration: { fps: 25 } }
+];
+const CHIPS = [
+  ["Selfie në makinë", "A young woman talking to the camera in a parked car, natural head movement, soft daylight through the windows, handheld selfie video, realistic"],
+  ["Në shtëpi", "A woman talking to the camera at home, cozy living room, warm evening light, natural gestures, casual handheld phone video, realistic"],
+  ["Perëndim dielli", "A woman talking to the camera outdoors at golden hour, gentle breeze moving her hair, soft warm sunlight, handheld selfie video, realistic"],
+  ["Kafene", "A woman talking to the camera in a cafe, relaxed smile, light hand gestures, shallow depth of field, natural indoor light, realistic"],
+  ["Studio podcast", "A woman speaking into a podcast microphone, looking at the camera, soft key light, dark background, steady camera, realistic"]
+];
+
+const S = {
+  app: null, entries: [], files: [], profile: null, file: null, info: null, busy: false,
+  uploads: { image: null, audio: null, video: null },
+  format: store.get("format", "9:16"), quality: store.get("quality", "std"), dur: store.get("dur", 5),
+  clientId: uid(), run: null
+};
+
+/* ---------- ui helpers ---------- */
+let toastT;
+function toast(msg, kind) {
+  const t = $("#toast"); t.textContent = msg; t.className = "toast show" + (kind ? " " + kind : "");
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = "toast", kind === "info" ? 3500 : 9000);
+}
+function engine(state, txt) {
+  $("#engineDot").className = "dot" + (state === "ok" ? " ok" : state === "err" ? " err" : "");
+  $("#engineTxt").textContent = txt;
+}
+const fmtTime = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const viewUrl = f => `/api/view?filename=${encodeURIComponent(f.filename)}&subfolder=${encodeURIComponent(f.subfolder || "")}&type=${f.type || "output"}`;
+const isVideo = n => /\.(mp4|webm|mov|mkv|gif)$/i.test(n);
+
+/* ---------- graph access (runs against the hidden ComfyUI app) ---------- */
+function graphRoot() { return S.app.rootGraph || S.app.graph; }
+function walk() {
+  const seen = new Set(), out = [];
+  const rec = (g, active, parent) => {
+    for (const n of (g._nodes || g.nodes || [])) {
+      if (seen.has(n)) continue; seen.add(n);
+      const on = active && (n.mode == null || n.mode === 0);
+      out.push({ n, g, on, parent });
+      if (n.isSubgraphNode && n.isSubgraphNode() && n.subgraph) rec(n.subgraph, on, n);
+    }
+  };
+  rec(graphRoot(), true, null);
+  return out;
+}
+const W = (n, name) => (n.widgets || []).find(w => w.name === name);
+const Wm = (n, re) => (n.widgets || []).filter(w => re.test(w.name || ""));
+function getLink(g, id) {
+  if (!g || id == null) return null;
+  if (g.getLink) { const l = g.getLink(id); if (l) return l; }
+  const ls = g.links; if (!ls) return null;
+  return ls.get ? ls.get(id) : ls[id];
+}
+function textRole(e) {
+  const n = e.n, t = (n.title || "").toLowerCase();
+  if (/negativ/.test(t)) return "neg";
+  if (/positiv/.test(t)) return "pos";
+  const g = n.graph || e.g;
+  for (const o of (n.outputs || [])) for (const id of (o.links || [])) {
+    const l = getLink(g, id); if (!l) continue;
+    const tn = g.getNodeById ? g.getNodeById(l.target_id) : null;
+    const name = ((tn && tn.inputs && tn.inputs[l.target_slot] && tn.inputs[l.target_slot].name) || "").toLowerCase();
+    if (name.includes("negative")) return "neg";
+    if (name.includes("positive")) return "pos";
+  }
+  const txt = String((W(n, "text") || {}).value || "");
+  if (/low quality|worst quality|blurry|watermark|deformed|色调艳丽|最差|低质量/i.test(txt)) return "neg";
+  return null;
+}
+// A widget whose input is linked takes its value from upstream: follow the link to the widget that is really read.
+const SUBGRAPH_INPUT = -10;
+function entryOf(node, fallback) { return S.entries.find(x => x.n === node) || { n: node, g: node.graph, parent: null, on: true, ...fallback }; }
+function resolveTarget(e, name, depth = 0) {
+  const n = e.n, own = W(n, name);
+  const inp = (n.inputs || []).find(i => i.name === name || (i.widget && i.widget.name === name));
+  if (!inp || inp.link == null || depth > 5) return own ? { e, w: own } : null;
+  const g = n.graph || e.g, l = getLink(g, inp.link);
+  if (!l) return own ? { e, w: own } : null;
+  if (l.origin_id === SUBGRAPH_INPUT) {
+    const si = (g.inputs || [])[l.origin_slot];
+    if (!si || !e.parent) return own ? { e, w: own } : null;
+    return resolveTarget(entryOf(e.parent), si.name, depth + 1);
+  }
+  const src = g.getNodeById ? g.getNodeById(l.origin_id) : null;
+  if (src) {
+    const sw = W(src, "value") || W(src, "text") || W(src, "string") || (src.widgets || [])[0];
+    if (sw) return { e: entryOf(src, { parent: e.parent }), w: sw };
+  }
+  return own ? { e, w: own } : null;
+}
+function uniqTargets(list) {
+  const seen = new Set();
+  return list.filter(t => t && t.w && !seen.has(t.w) && seen.add(t.w));
+}
+function analyze(profile) {
+  const all = walk(), on = all.filter(e => e.on);
+  S.entries = all;
+  const pick = (types, wname) => on.filter(e => types.includes(e.n.type)).map(e => ({ ...e, w: W(e.n, wname) })).filter(e => e.w);
+  const info = {
+    images: pick(["LoadImage"], "image"),
+    audios: [...pick(["LoadAudio", "VHS_LoadAudioUpload", "LoadAudioUpload"], "audio")],
+    videos: [...pick(["VHS_LoadVideo"], "video"), ...pick(["LoadVideo"], "file")],
+    prompts: [], seeds: [], sizes: [], length: null
+  };
+  for (const e of on) if (W(e.n, "positive_prompt") || (e.n.inputs || []).some(i => i.name === "positive_prompt")) info.prompts.push(resolveTarget(e, "positive_prompt"));
+  if (!info.prompts.filter(Boolean).length) {
+    const c = on.filter(e => /TextEncode/i.test(e.n.type) && (W(e.n, "text") || (e.n.inputs || []).some(i => i.name === "text")));
+    const pos = c.filter(e => textRole(e) === "pos"), neu = c.filter(e => textRole(e) == null);
+    info.prompts = (pos.length ? pos : neu.slice(0, 1)).map(e => resolveTarget(e, "text"));
+  }
+  info.prompts = uniqTargets(info.prompts).map(t => ({ ...t.e, w: t.w }));
+  for (const e of on) for (const w of Wm(e.n, /^(seed|noise_seed)$/)) info.seeds.push({ ...e, w });
+  if (profile && profile.size) {
+    for (const e of on) if (profile.size.types.includes(e.n.type)) {
+      const ws = Wm(e.n, /(^|\.)width$/), hs = Wm(e.n, /(^|\.)height$/);
+      if (ws.length && hs.length) info.sizes.push({ ...e, ws, hs });
+    }
+  }
+  if (profile && profile.duration) {
+    const e = on.find(e => /primitiveint/i.test(e.n.type) && /^length$/i.test((e.n.title || "").trim()));
+    const t = e && resolveTarget(e, "value");
+    if (t) info.length = { ...t.e, w: t.w };
+  }
+  return info;
+}
+function setW(e, w, v) {
+  const old = w.value;
+  w.value = v;
+  try { w.callback && w.callback(v); } catch {}
+  // promoted widgets on the subgraph node mirror the inner widget
+  if (e.parent) for (const pw of (e.parent.widgets || [])) if (pw !== w && pw.name === w.name && pw.value === old) pw.value = v;
+}
+
+/* ---------- engine ---------- */
+async function bootEngine() {
+  const f = $("#engine");
+  for (let i = 0; i < 360; i++) {
+    try {
+      const w = f.contentWindow, a = w && (w.app || (w.comfyAPI && w.comfyAPI.app && w.comfyAPI.app.app));
+      if (a && (a.rootGraph || a.graph) && typeof a.graphToPrompt === "function" && typeof a.loadGraphData === "function") { S.app = a; break; }
+    } catch {}
+    await sleep(500);
+  }
+  if (!S.app) { engine("err", "Motori nuk u nis"); toast("ComfyUI nuk u ngarkua. Rifresko faqen, ose kontrollo që pod-i të jetë ndezur."); return; }
+  await sleep(1200);
+  engine("ok", "Gati");
+  await loadList();
+}
+
+async function loadList() {
+  let files = [];
+  try {
+    const r = await fetch("/api/userdata?dir=workflows");
+    if (r.ok) files = (await r.json()).filter(x => typeof x === "string" && x.endsWith(".json"));
+  } catch {}
+  S.files = files;
+  const box = $("#modes"); box.innerHTML = "";
+  const known = PROFILES.map(p => ({ p, file: files.find(f => f.split("/").pop().startsWith(p.prefix)) })).filter(x => x.file);
+  const extra = files.filter(f => !known.some(k => k.file === f)).map(f => ({
+    p: { prefix: null, title: f.replace(/\.json$/, "").replace(/^.*\//, "").replace(/_/g, " "), sub: "Workflow i yt", icon: "flow", desc: "Workflow i ruajtur në ComfyUI.", size: null }, file: f
+  }));
+  const list = [...known, ...extra];
+  if (!list.length) { box.innerHTML = '<p class="hint">Nuk u gjet asnjë workflow te ComfyUI → Workflows.</p>'; return; }
+  for (const { p, file } of list) {
+    const b = document.createElement("button");
+    b.className = "mode"; b.dataset.file = file;
+    b.innerHTML = `${p.badge ? `<span class="badge">${p.badge}</span>` : ""}
+      <div class="mhead"><div class="mico">${svg(p.icon)}</div><div><div class="mtitle">${p.title}</div><div class="msub">${p.sub}</div></div></div>
+      <p class="mdesc">${p.desc}</p><div class="tags" data-tags></div>`;
+    b.onclick = () => selectMode(p, file, b);
+    box.appendChild(b);
+  }
+  const last = store.get("file", null);
+  const btn = [...box.children].find(x => x.dataset.file === last) || box.children[0];
+  btn && btn.click();
+}
+
+async function selectMode(p, file, btn) {
+  if (S.busy || (S.run && !S.run.done)) return;
+  S.busy = true;
+  document.querySelectorAll(".mode").forEach(m => { m.classList.toggle("on", m === btn); m.disabled = true; });
+  $("#goBtn").disabled = true; $("#need").textContent = "Duke ngarkuar workflow-in…";
+  try {
+    const r = await fetch("/api/userdata/" + encodeURIComponent("workflows/" + file));
+    if (!r.ok) throw new Error("Workflow-i nuk u lexua (" + r.status + ")");
+    const wf = await r.json();
+    await S.app.loadGraphData(wf);
+    await sleep(500);
+    S.profile = p; S.file = file; S.info = analyze(p);
+    store.set("file", file);
+    renderInputs(); renderSettings();
+    const prev = store.get("prompt:" + file, null);
+    $("#prompt").value = prev != null ? prev : "";
+    const tags = btn.querySelector("[data-tags]");
+    tags.innerHTML = [S.info.images.length && "Foto", S.info.audios.length && "Audio", S.info.videos.length && "Video", S.info.prompts.length && "Prompt"]
+      .filter(Boolean).map(t => `<span class="tag">${t}</span>`).join("");
+  } catch (err) {
+    toast("Nuk u hap workflow-i: " + (err.message || err));
+  } finally {
+    S.busy = false;
+    document.querySelectorAll(".mode").forEach(m => m.disabled = false);
+    validate();
+  }
+}
+
+/* ---------- inputs ---------- */
+const KINDS = {
+  image: { label: "Foto e personazhit", sub: "JPG ose PNG · fytyra e qartë", accept: "image/*", icon: "image" },
+  audio: { label: "Audio / zëri", sub: "MP3 ose WAV", accept: "audio/*", icon: "audio" },
+  video: { label: "Video drejtuese", sub: "MP4 · 3–10 sekonda", accept: "video/*", icon: "video" }
+};
+function renderInputs() {
+  const need = [S.info.images.length && "image", S.info.audios.length && "audio", S.info.videos.length && "video"].filter(Boolean);
+  const box = $("#drops"); box.innerHTML = "";
+  $("#secInputs").classList.toggle("hide", !need.length);
+  for (const k of need) {
+    const d = KINDS[k], el = document.createElement("label");
+    el.className = "drop " + k;
+    el.innerHTML = `<input type="file" accept="${d.accept}"><div class="ph">${svg(d.icon)}<div class="dl">${d.label}</div><div class="ds">${d.sub}<br>Kliko ose tërhiq skedarin këtu</div></div>`;
+    const inp = el.querySelector("input");
+    inp.onchange = () => inp.files[0] && takeFile(k, inp.files[0], el);
+    el.ondragover = ev => { ev.preventDefault(); el.classList.add("over"); };
+    el.ondragleave = () => el.classList.remove("over");
+    el.ondrop = ev => { ev.preventDefault(); el.classList.remove("over"); const f = ev.dataTransfer.files[0]; f && takeFile(k, f, el); };
+    box.appendChild(el);
+    if (S.uploads[k]) showFile(k, el, S.uploads[k]);
+  }
+  const hints = [];
+  if (S.info.videos.length) hints.push("Videoja drejtuese jep lëvizjen, shprehjet dhe zërin.");
+  if (S.info.audios.length) hints.push(S.profile && S.profile.prefix === "03_" ? "Gjatësia e videos ndjek audion." : "Përdor zë të pastër, pa muzikë në sfond.");
+  $("#inputsHint").textContent = hints.join(" ");
+  $("#secPrompt").classList.toggle("hide", !S.info.prompts.length);
+}
+function showFile(k, el, u) {
+  el.classList.add("has");
+  [...el.querySelectorAll("img,video,audio,.fbar,.aico")].forEach(x => x.remove());
+  let media = "";
+  if (k === "image") media = `<img src="${u.url}" alt="">`;
+  if (k === "video") media = `<video src="${u.url}" muted loop autoplay playsinline></video>`;
+  if (k === "audio") media = `<div class="aico">${svg("audio")}</div><audio src="${u.url}" controls></audio>`;
+  el.insertAdjacentHTML("beforeend", media + `<div class="fbar"><span class="fname">${u.file.name.replace(/[<>&]/g, "")}</span><span class="st ${u.state === "ok" ? "ok" : u.state === "err" ? "err" : ""}">${u.state === "ok" ? "✓ Gati" : u.state === "err" ? "Gabim" : "Duke ngarkuar…"}</span></div>`);
+}
+async function takeFile(k, file, el) {
+  if (S.uploads[k] && S.uploads[k].url) URL.revokeObjectURL(S.uploads[k].url);
+  const u = { file, url: URL.createObjectURL(file), state: "up", name: null };
+  S.uploads[k] = u; showFile(k, el, u); validate();
+  try {
+    const safe = file.name.replace(/[^\w.\-]+/g, "_").slice(-60);
+    const fd = new FormData();
+    fd.append("image", new File([file], `reels_${Date.now()}_${safe}`, { type: file.type }));
+    fd.append("type", "input"); fd.append("overwrite", "true");
+    const r = await fetch("/api/upload/image", { method: "POST", body: fd });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    u.name = j.subfolder ? j.subfolder + "/" + j.name : j.name; u.state = "ok";
+  } catch (err) {
+    u.state = "err"; toast("Ngarkimi dështoi: " + (err.message || err));
+  }
+  if (S.uploads[k] === u) { showFile(k, el, u); validate(); }
+}
+
+/* ---------- settings ---------- */
+function renderSettings() {
+  const hasSize = S.info.sizes.length > 0, hasDur = !!S.info.length;
+  $("#formatBox").classList.toggle("hide", !hasSize);
+  $("#formatNote").classList.toggle("hide", hasSize);
+  $("#formatNote").textContent = S.info.videos.length ? "Përmasat ndjekin videon që ngarkon." : "Përmasat ndjekin workflow-in.";
+  $("#durBox").classList.toggle("hide", !hasDur);
+  if (hasDur) { $("#dur").value = S.dur; $("#durV").textContent = S.dur + " s"; }
+  syncSeg("#segFormat", S.format); syncSeg("#segQuality", S.quality);
+  $("#segQuality").style.opacity = S.format === "orig" ? .4 : 1;
+}
+function syncSeg(sel, v) { document.querySelectorAll(sel + " button").forEach(b => b.classList.toggle("on", b.dataset.v === v)); }
+document.querySelectorAll("#segFormat button").forEach(b => b.onclick = () => { S.format = b.dataset.v; store.set("format", S.format); renderSettings(); });
+document.querySelectorAll("#segQuality button").forEach(b => b.onclick = () => { S.quality = b.dataset.v; store.set("quality", S.quality); renderSettings(); });
+$("#dur").oninput = e => { S.dur = +e.target.value; $("#durV").textContent = S.dur + " s"; store.set("dur", S.dur); };
+$("#prompt").oninput = () => { S.file && store.set("prompt:" + S.file, $("#prompt").value); validate(); };
+$("#chips").innerHTML = CHIPS.map((c, i) => `<button class="chip" data-i="${i}">${c[0]}</button>`).join("");
+document.querySelectorAll(".chip").forEach(c => c.onclick = () => { $("#prompt").value = CHIPS[+c.dataset.i][1]; $("#prompt").dispatchEvent(new Event("input")); });
+
+function validate() {
+  const btn = $("#goBtn"), need = $("#need");
+  if (!S.info) { btn.disabled = true; return; }
+  const miss = [];
+  for (const [k, list, name] of [["image", S.info.images, "foton"], ["audio", S.info.audios, "audion"], ["video", S.info.videos, "videon"]]) {
+    if (!list.length) continue;
+    const u = S.uploads[k];
+    if (!u) miss.push("ngarko " + name);
+    else if (u.state === "up") miss.push("prit sa të ngarkohet " + name);
+    else if (u.state === "err") miss.push("ngarko sërish " + name);
+  }
+  const running = S.run && !S.run.done;
+  btn.disabled = S.busy || running || miss.length > 0;
+  need.textContent = running ? "" : miss.length ? "Që të fillosh: " + miss.join(", ") + "." : "";
+}
+
+/* ---------- generate ---------- */
+function applyInputs() {
+  const I = S.info;
+  for (const [k, list] of [["image", I.images], ["audio", I.audios], ["video", I.videos]]) {
+    const u = S.uploads[k]; if (!u || !u.name) continue;
+    for (const e of list) setW(e, e.w, u.name);
+  }
+  const txt = $("#prompt").value.trim();
+  if (txt) for (const e of I.prompts) setW(e, e.w, txt);
+  for (const e of I.seeds) setW(e, e.w, Math.floor(Math.random() * 2 ** 47));
+  if (I.sizes.length && S.format !== "orig" && S.profile && S.profile.size) {
+    const [w, h] = SIZES[S.profile.size.table][S.format][S.quality];
+    for (const e of I.sizes) { e.ws.forEach(x => setW(e, x, w)); e.hs.forEach(x => setW(e, x, h)); }
+  }
+  if (I.length && S.profile && S.profile.duration) {
+    const fps = S.profile.duration.fps;
+    setW(I.length, I.length.w, 8 * Math.round(S.dur * fps / 8) + 1);
+  }
+}
+function errText(j) {
+  if (!j) return "Gabim i panjohur.";
+  const parts = [];
+  if (j.error) parts.push(j.error.message + (j.error.details ? " — " + j.error.details : ""));
+  for (const [id, ne] of Object.entries(j.node_errors || {})) {
+    for (const e of (ne.errors || []).slice(0, 2)) parts.push(`${ne.class_type || id}: ${e.message}${e.details ? " — " + e.details : ""}`);
+    if (parts.length > 4) break;
+  }
+  return parts.join("\n") || "Gabim i panjohur.";
+}
+async function generate() {
+  validate(); if ($("#goBtn").disabled) return;
+  $("#goBtn").disabled = true;
+  try {
+    applyInputs();
+    const p = await S.app.graphToPrompt();
+    const r = await fetch("/api/prompt", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_id: S.clientId, prompt: p.output, extra_data: { extra_pnginfo: { workflow: p.workflow } } })
+    });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j || !j.prompt_id) throw new Error(errText(j));
+    const names = {};
+    for (const [id, n] of Object.entries(p.output)) names[id] = (n._meta && n._meta.title) || n.class_type;
+    S.run = { id: j.prompt_id, total: Math.max(1, Object.keys(p.output).length), doneSet: new Set(), cur: null, frac: 0, start: Date.now(), names, done: false };
+    showProgress(true); updateProgress("Në radhë…");
+    pollRun(S.run);
+  } catch (err) {
+    toast("Gjenerimi nuk filloi:\n" + (err.message || err));
+    S.run = null;
+  }
+  validate();
+}
+function showProgress(on) {
+  $("#prog").classList.toggle("hide", !on);
+  $("#stopBtn").classList.toggle("hide", !on);
+  if (on) { $("#actions").classList.add("hide"); $("#goTxt").textContent = "Duke gjeneruar…"; }
+  else $("#goTxt").textContent = "Gjenero videon";
+}
+function updateProgress(status) {
+  const r = S.run; if (!r) return;
+  const pct = Math.min(99, ((r.doneSet.size + r.frac) / r.total) * 100);
+  $("#pBar").style.width = pct.toFixed(1) + "%";
+  if (status) $("#pStatus").textContent = status;
+}
+setInterval(() => { if (S.run && !S.run.done) $("#pTime").textContent = fmtTime((Date.now() - S.run.start) / 1000); }, 1000);
+
+async function finishRun(r, hist) {
+  if (r.done) return; r.done = true;
+  showProgress(false);
+  const files = [];
+  for (const o of Object.values((hist && hist.outputs) || {})) for (const v of Object.values(o)) if (Array.isArray(v)) for (const f of v)
+    if (f && f.filename && f.type === "output") files.push(f);
+  const vids = files.filter(f => isVideo(f.filename));
+  const best = vids[vids.length - 1] || files[files.length - 1];
+  if (best) { play(best); toast("Videoja është gati ✓", "info"); }
+  else toast("Gjenerimi mbaroi, por nuk u gjet asnjë video në output.");
+  loadGallery(); validate();
+}
+function failRun(r, msg) {
+  if (r.done) return; r.done = true;
+  showProgress(false); toast(msg); validate();
+}
+function play(f) {
+  const v = $("#player"), url = viewUrl(f);
+  $("#emptyState").classList.add("hide"); v.classList.remove("hide");
+  v.src = url; v.play().catch(() => {});
+  const a = $("#dlBtn"); a.href = url; a.download = f.filename;
+  $("#actions").classList.remove("hide");
+}
+async function pollRun(r) {
+  while (!r.done) {
+    await sleep(4000);
+    if (r.done) return;
+    try {
+      const res = await fetch("/api/history/" + r.id);
+      if (!res.ok) continue;
+      const h = (await res.json())[r.id];
+      if (!h) continue;
+      const st = h.status || {};
+      if (st.status_str === "error") {
+        const m = (st.messages || []).find(x => x[0] === "execution_error");
+        failRun(r, "Gjenerimi dështoi:\n" + (m ? `${m[1].node_type}: ${m[1].exception_message}` : "shiko log-un e ComfyUI"));
+      } else if (st.completed || st.status_str === "success") finishRun(r, h);
+    } catch {}
+  }
+}
+
+/* ---------- live progress over websocket ---------- */
+function connectWS() {
+  let ws;
+  try { ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws?clientId=${encodeURIComponent(S.clientId)}`); }
+  catch { setTimeout(connectWS, 3000); return; }
+  ws.onmessage = ev => {
+    if (typeof ev.data !== "string") return;
+    let m; try { m = JSON.parse(ev.data); } catch { return; }
+    if (m.type === "status") { const q = m.data && m.data.status && m.data.status.exec_info; if (q) $("#qn").textContent = q.queue_remaining; }
+    const r = S.run; if (!r || r.done) return;
+    const d = m.data || {};
+    if (d.prompt_id && d.prompt_id !== r.id) return;
+    switch (m.type) {
+      case "execution_start": updateProgress("Duke filluar…"); break;
+      case "execution_cached": (d.nodes || []).forEach(n => r.doneSet.add(String(n))); updateProgress(); break;
+      case "executing":
+        if (r.cur) r.doneSet.add(String(r.cur));
+        if (d.node == null) { fetch("/api/history/" + r.id).then(x => x.json()).then(h => finishRun(r, h[r.id])).catch(() => {}); break; }
+        r.cur = d.node; r.frac = 0; updateProgress(nodeLabel(r, d.node)); break;
+      case "progress":
+        r.frac = d.max ? d.value / d.max : 0;
+        updateProgress(`${nodeLabel(r, d.node || r.cur)} · ${d.value}/${d.max}`); break;
+      case "execution_error": failRun(r, `Gjenerimi dështoi:\n${d.node_type || ""}: ${d.exception_message || ""}`); break;
+      case "execution_interrupted": failRun(r, "Gjenerimi u ndalua."); break;
+    }
+  };
+  ws.onclose = () => setTimeout(connectWS, 2500);
+}
+function nodeLabel(r, id) {
+  const raw = String(r.names[id] || r.names[String(id).split(":").pop()] || "");
+  if (/sampler/i.test(raw)) return "Duke gjeneruar kuadrot";
+  if (/decode/i.test(raw)) return "Duke dekoduar videon";
+  if (/load|loader/i.test(raw)) return "Duke ngarkuar modelet";
+  if (/encode/i.test(raw)) return "Duke përgatitur";
+  if (/combine|save|createvideo/i.test(raw)) return "Duke ruajtur videon";
+  if (/pose|detect|vitpose|yolo/i.test(raw)) return "Duke analizuar lëvizjen";
+  return raw ? "Hapi: " + raw : "Duke punuar…";
+}
+$("#goBtn").onclick = generate;
+$("#againBtn").onclick = generate;
+$("#stopBtn").onclick = async () => { try { await fetch("/api/interrupt", { method: "POST" }); } catch {} };
+
+/* ---------- gallery & queue ---------- */
+async function loadGallery() {
+  try {
+    const r = await fetch("/reels/api/outputs"); if (!r.ok) return;
+    const items = await r.json(), box = $("#thumbs");
+    if (!items.length) { box.innerHTML = '<p class="hint">Ende asnjë video.</p>'; return; }
+    box.innerHTML = "";
+    for (const it of items.slice(0, 40)) {
+      const f = { filename: it.filename, subfolder: it.subfolder, type: "output" };
+      const d = document.createElement("div"); d.className = "thumb";
+      const when = new Date(it.mtime * 1000);
+      d.innerHTML = `<video src="${viewUrl(f)}#t=0.5" muted loop playsinline preload="metadata"></video><div class="tm">${when.toLocaleDateString()} ${when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>`;
+      const v = d.querySelector("video");
+      d.onmouseenter = () => v.play().catch(() => {}); d.onmouseleave = () => v.pause();
+      d.onclick = () => { play(f); window.scrollTo({ top: 0, behavior: "smooth" }); };
+      box.appendChild(d);
+    }
+  } catch {}
+}
+$("#refreshGal").onclick = loadGallery;
+async function pollQueue() {
+  try { const r = await fetch("/api/queue"); if (r.ok) { const q = await r.json(); $("#qn").textContent = (q.queue_running || []).length + (q.queue_pending || []).length; } } catch {}
+}
+setInterval(pollQueue, 6000);
+
+connectWS(); loadGallery(); pollQueue(); bootEngine();
+})();
+</script>
+</body>
+</html>
