@@ -98,7 +98,8 @@ def is_wf(f):
     try: return "nodes" in json.load(open(f, encoding="utf-8"))
     except Exception: return False
 def pick(files, keys, prefer=()):
-    c = [f for f in files if any(k in os.path.basename(f).lower() for k in keys) and is_wf(f)]
+    c = [f for f in files if any(k in os.path.basename(f).lower() for k in keys)
+         and not os.path.basename(f).lower().startswith("api_") and is_wf(f)]
     if not c: return None
     c.sort(key=lambda f: (not any(p in os.path.basename(f).lower() for p in prefer), len(os.path.basename(f))))
     return c[0]
@@ -152,13 +153,14 @@ for f in [os.path.join(os.environ["COMFY"], "nodes.py")] + glob.glob(os.path.joi
         + glob.glob(os.path.join(os.environ["COMFY"], "custom_nodes", "**", "*.py"), recursive=True):
     try: SRC[f] = open(f, encoding="utf-8", errors="ignore").read()
     except Exception: pass
+VIRTUAL = {"unet_gguf": "diffusion_models", "clip_gguf": "text_encoders"}
 def loader_folder(node_type):
     for txt in SRC.values():
         m = re.search(r"\nclass\s+" + re.escape(node_type) + r"\b", txt)
         if not m: continue
         body = re.split(r"\nclass\s", txt[m.end():], maxsplit=1)[0]
         g = re.search(r"get_filename_list\(\s*[\"']([\w\-]+)[\"']", body)
-        if g: return g.group(1)
+        if g: return VIRTUAL.get(g.group(1), g.group(1))
     return LOADER_DIR.get(node_type)
 def all_nodes(w):
     yield from w.get("nodes", [])
@@ -218,24 +220,42 @@ try:
     os.chdir("/tmp"); YOLO("yolo11x-pose.pt")
     for sub in ("yolo", "ultralytics", "ultralytics/bbox"):
         d = os.path.join(M, sub); os.makedirs(d, exist_ok=True); shutil.copy("/tmp/yolo11x-pose.pt", d)
+    missing = [m for m in missing if m != "yolo11x-pose.pt"]
 except Exception as e:
     missing.append("yolo11x-pose.pt"); print("yolo download failed:", e)
 print("\nMISSING MODELS:", missing) if missing else print("\nall referenced models downloaded")
 PYEOF
 
-log "Verification: starting a temporary ComfyUI and checking every workflow"
-cd "$COMFY"
-"$PY" main.py --listen 127.0.0.1 --port 8199 >/tmp/comfy_check.log 2>&1 &
-CPID=$!
-for _ in $(seq 1 150); do curl -sf http://127.0.0.1:8199/object_info >/tmp/object_info.json && break; sleep 3; done
-kill $CPID 2>/dev/null; wait $CPID 2>/dev/null
-WFDIR="$WFDIR" "$PY" - <<'PYEOF'
-import glob, json, os, sys
+run_check(){
+  log "Verification: starting a temporary ComfyUI and checking every workflow"
+  cd "$COMFY"
+  "$PY" main.py --listen 127.0.0.1 --port 8199 >/tmp/comfy_check.log 2>&1 &
+  local CPID=$!
+  rm -f /tmp/object_info.json
+  for _ in $(seq 1 150); do curl -sf http://127.0.0.1:8199/object_info >/tmp/object_info.json && break; sleep 3; done
+  kill $CPID 2>/dev/null; wait $CPID 2>/dev/null
+  COMFY="$COMFY" WFDIR="$WFDIR" HEAL="$1" "$PY" - <<'PYEOF'
+import collections, glob, json, os, shutil, sys
+M = os.path.join(os.environ["COMFY"], "models")
 try: info = json.load(open("/tmp/object_info.json"))
 except Exception: sys.exit("ComfyUI did not start. See /tmp/comfy_check.log")
 skip = {"Reroute", "Note", "MarkdownNote", "PrimitiveNode", "GetNode", "SetNode"}
 EXT = (".safetensors", ".onnx", ".pt", ".pth", ".gguf", ".bin", ".ckpt")
-all_ok = True
+VIRTUAL = {"unet_gguf": "diffusion_models", "clip_gguf": "text_encoders"}
+def on_disk(rel):
+    return [p for p in glob.glob(os.path.join(M, "*", rel)) if os.path.isfile(p)]
+def heal(val, opts):
+    # put the file in the folder where the loader's other listed files live
+    src = on_disk(val)
+    if not src: return False
+    votes = collections.Counter(os.path.relpath(p, M).split(os.sep)[0] for o in opts for x in o
+                                if isinstance(x, str) and x.lower().endswith(EXT) for p in on_disk(x))
+    cur = os.path.relpath(src[0], M).split(os.sep)[0]
+    target = votes.most_common(1)[0][0] if votes else VIRTUAL.get(cur)
+    if not target or target == cur: return False
+    dst = os.path.join(M, target, val); os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.move(src[0], dst); print(f"   moved {val}: {cur}/ -> {target}/"); return True
+moved, all_ok = False, True
 for f in sorted(glob.glob(os.path.join(os.environ["WFDIR"], "*.json"))):
     w = json.load(open(f, encoding="utf-8"))
     sgs = (w.get("definitions") or {}).get("subgraphs", [])
@@ -252,14 +272,18 @@ for f in sorted(glob.glob(os.path.join(os.environ["WFDIR"], "*.json"))):
         wv = n.get("widgets_values")
         for val in (wv if isinstance(wv, list) else []):
             if isinstance(val, str) and val.lower().endswith(EXT) and opts and not any(val in o for o in opts):
-                bad_models.add(f"{t}: {val}")
+                if os.environ.get("HEAL") == "1" and heal(val, opts): moved = True
+                else: bad_models.add(f"{t}: {val}")
     ok = not bad_nodes and not bad_models; all_ok &= ok
     print(("\033[1;32mOK     \033[0m" if ok else "\033[1;31mPROBLEM\033[0m"), os.path.basename(f))
     if bad_nodes: print("   missing nodes:", sorted(bad_nodes))
     if bad_models: print("   models not visible:", sorted(bad_models))
+if moved: print("\nMoved models into the right folders; checking again."); sys.exit(3)
 print("\n\033[1;32mALL GOOD: every workflow is ready.\033[0m" if all_ok else
       "\nSend this whole output to Claude. Startup log: /tmp/comfy_check.log")
 PYEOF
+}
+run_check 1; [ $? -eq 3 ] && run_check 0
 log "Done. Restart the pod, open ComfyUI -> Workflows. SeedVR2 and RIFE download their own weights on first use."
 __SETUP_END__
 __WORKFLOW_B64__
