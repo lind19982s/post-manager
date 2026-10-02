@@ -16,6 +16,18 @@ set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 log(){ printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
 warn(){ printf '\033[1;33m[!] %s\033[0m\n' "$*"; }
+export PIP_DISABLE_PIP_VERSION_CHECK=1
+# Template checkouts often have no upstream branch; point them at the remote's default branch.
+git_update(){
+  local d="$1" b
+  if ! git -C "$d" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+    git -C "$d" fetch -q origin || return 1
+    git -C "$d" remote set-head origin -a >/dev/null 2>&1
+    b=$(git -C "$d" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) || return 1
+    git -C "$d" checkout -q -B "${b#origin/}" "$b" || return 1
+  fi
+  git -C "$d" pull -q --ff-only
+}
 
 COMFY="${COMFY_DIR:-}"
 if [ -z "$COMFY" ]; then
@@ -34,11 +46,7 @@ FREE_GB=$(df -BG --output=avail "$COMFY" | tail -1 | tr -dc '0-9')
 [ "${FREE_GB:-0}" -lt 180 ] && warn "Only ${FREE_GB}GB free; the full studio needs about 150GB. Use a 250GB volume or SKIP_LTX=1."
 
 log "Updating ComfyUI core (needed for native Wan 2.2 S2V and LTX-2 nodes)"
-if [ -d "$COMFY/.git" ]; then
-  git -C "$COMFY" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1 || {
-    git -C "$COMFY" fetch -q origin && git -C "$COMFY" branch -q --set-upstream-to=origin/master; }
-  git -C "$COMFY" pull -q --ff-only || warn "ComfyUI git pull failed"
-fi
+if [ -d "$COMFY/.git" ]; then git_update "$COMFY" || warn "ComfyUI update failed"; fi
 "$PY" -m pip install -q -U -r "$COMFY/requirements.txt" || warn "ComfyUI requirements update failed"
 
 log "Custom nodes"
@@ -63,7 +71,7 @@ REPOS=(
 )
 for r in "${REPOS[@]}"; do
   n="$(basename "$r")"
-  if [ -d "$n/.git" ]; then git -C "$n" pull -q || warn "pull failed: $n"
+  if [ -d "$n/.git" ]; then git_update "$n" || warn "update failed: $n"
   else git clone -q --depth 1 "$r" "$n" || warn "clone failed: $r"; fi
   [ -f "$n/requirements.txt" ] && { "$PY" -m pip install -q -r "$n/requirements.txt" || warn "requirements failed: $n"; }
   [ -f "$n/install.py" ] && [ "$n" = "ComfyUI-Frame-Interpolation" ] && (cd "$n" && "$PY" install.py >/dev/null 2>&1 || true)
